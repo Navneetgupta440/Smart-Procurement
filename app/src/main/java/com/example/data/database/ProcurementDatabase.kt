@@ -51,7 +51,7 @@ import com.example.data.entity.UserEntity
         AuditLogEntity::class,
         SystemSettingsEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
