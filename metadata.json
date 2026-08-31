@@ -1,0 +1,6 @@
+{
+  "name": "Smart Procurement",
+  "description": "Enterprise Smart Procurement & Purchase Order Management System with multi-level approvals, supplier scoring, delivery tracking, inventory automation, and audit logging.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
