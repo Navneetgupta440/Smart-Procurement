@@ -1,6 +1,11 @@
 package com.example.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -110,6 +115,11 @@ import com.example.ui.theme.StatusWarning
 import com.example.ui.theme.StatusWarningContainer
 import com.example.ui.theme.TealAccent
 import com.example.ui.viewmodel.AppTab
+import com.example.util.HighValueOrderAlert
+import kotlinx.coroutines.delay
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Cancel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -730,3 +740,205 @@ fun NotificationsModal(
         }
     )
 }
+
+/**
+ * Prominent animated Heads-Up Alert Banner for immediate feedback when high-value POs
+ * are approved, advanced in signature tiers, or rejected.
+ */
+@Composable
+fun HighValueAlertBanner(
+    alert: HighValueOrderAlert?,
+    onDismiss: () -> Unit,
+    onViewOrder: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LaunchedEffect(alert?.id) {
+        if (alert != null) {
+            delay(7000L) // Auto dismiss after 7 seconds
+            onDismiss()
+        }
+    }
+
+    AnimatedVisibility(
+        visible = alert != null,
+        enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+        exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
+        modifier = modifier
+    ) {
+        if (alert != null) {
+            val isApproved = alert.isApproved
+            val bgGradient = if (isApproved) {
+                listOf(Color(0xFF064E3B), Color(0xFF047857)) // Emerald deep green
+            } else {
+                listOf(Color(0xFF881337), Color(0xFFBE123C)) // Crimson deep red
+            }
+            val accentBorderColor = if (isApproved) Color(0xFF34D399) else Color(0xFFFB7185)
+
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.5.dp, accentBorderColor),
+                elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .testTag("high_value_alert_banner")
+            ) {
+                Box(
+                    modifier = Modifier
+                        .background(Brush.horizontalGradient(bgGradient))
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = Color.White.copy(alpha = 0.2f),
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = if (isApproved) Icons.Default.CheckCircle else Icons.Default.Cancel,
+                                            contentDescription = if (isApproved) "Approved" else "Rejected",
+                                            tint = Color.White,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Surface(
+                                            shape = RoundedCornerShape(4.dp),
+                                            color = if (isApproved) Color(0xFF059669) else Color(0xFFE11D48),
+                                            modifier = Modifier.padding(end = 6.dp)
+                                        ) {
+                                            Text(
+                                                text = if (isApproved) {
+                                                    if (alert.isFullyApproved) "PO FULLY APPROVED" else "PO TIER SIGNED"
+                                                } else "PO REJECTED",
+                                                color = Color.White,
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Black,
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                            )
+                                        }
+                                        Text(
+                                            text = "HIGH-VALUE ALERT",
+                                            color = Color.White.copy(alpha = 0.8f),
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            letterSpacing = 0.5.sp
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = alert.poNumber,
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+
+                            IconButton(
+                                onClick = onDismiss,
+                                modifier = Modifier.size(28.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Dismiss Alert",
+                                    tint = Color.White.copy(alpha = 0.8f),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color.Black.copy(alpha = 0.25f),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(10.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Amount: ${formatCurrency(alert.amount)}",
+                                        color = Color.White,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        fontSize = 14.sp
+                                    )
+                                    Text(
+                                        text = "By ${alert.actorName}",
+                                        color = Color.White.copy(alpha = 0.9f),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                                if (alert.remarksOrReason.isNotBlank()) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = if (isApproved) "Remarks: ${alert.remarksOrReason}" else "Reason: ${alert.remarksOrReason}",
+                                        color = Color.White.copy(alpha = 0.85f),
+                                        fontSize = 11.sp,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Row(
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            TextButton(
+                                onClick = onDismiss,
+                                colors = ButtonDefaults.textButtonColors(contentColor = Color.White.copy(alpha = 0.85f))
+                            ) {
+                                Text("Dismiss", fontSize = 12.sp)
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = {
+                                    onViewOrder(alert.poNumber)
+                                    onDismiss()
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.White,
+                                    contentColor = if (isApproved) Color(0xFF065F46) else Color(0xFF9F1239)
+                                ),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.height(34.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ShoppingCart,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("View in Orders", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+

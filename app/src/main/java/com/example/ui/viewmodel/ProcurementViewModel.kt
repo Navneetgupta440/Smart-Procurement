@@ -41,6 +41,8 @@ import kotlinx.coroutines.launch
 import com.example.data.model.MembershipPlan
 import com.example.data.preferences.AppThemeMode
 import com.example.data.preferences.UserPreferencesRepository
+import com.example.util.HighValueOrderAlert
+import com.example.util.LocalNotificationManager
 
 enum class AppTab(val title: String, val iconName: String) {
     DASHBOARD("Dashboard", "Dashboard"),
@@ -98,6 +100,9 @@ class ProcurementViewModel(application: Application) : AndroidViewModel(applicat
 
     private val _toastMessage = MutableStateFlow<String?>(null)
     val toastMessage: StateFlow<String?> = _toastMessage.asStateFlow()
+
+    private val _highValueOrderAlert = MutableStateFlow<HighValueOrderAlert?>(null)
+    val highValueOrderAlert: StateFlow<HighValueOrderAlert?> = _highValueOrderAlert.asStateFlow()
 
     private val _demoLifecycleStep = MutableStateFlow(1)
     val demoLifecycleStep: StateFlow<Int> = _demoLifecycleStep.asStateFlow()
@@ -272,6 +277,46 @@ class ProcurementViewModel(application: Application) : AndroidViewModel(applicat
         _toastMessage.value = null
     }
 
+    fun dismissHighValueAlert() {
+        _highValueOrderAlert.value = null
+    }
+
+    fun triggerTestHighValueNotification(isApproved: Boolean) {
+        viewModelScope.launch {
+            val user = currentUser.value ?: repository.allUsers.first().firstOrNull() ?: return@launch
+            val testPoNumber = "PO-2026-9999"
+            val testAmount = 145000.0
+            val remarks = if (isApproved) "Test approval for high-capacity datacenter server stack" else "Budget freeze review required"
+
+            LocalNotificationManager.showHighValueOrderNotification(
+                context = getApplication(),
+                poNumber = testPoNumber,
+                amount = testAmount,
+                isApproved = isApproved,
+                isFullyApproved = isApproved,
+                actorName = user.name,
+                actorRole = user.role.displayName,
+                remarksOrReason = remarks,
+                currentLevel = 2,
+                requiredLevel = 2
+            )
+
+            _highValueOrderAlert.value = HighValueOrderAlert(
+                poNumber = testPoNumber,
+                amount = testAmount,
+                isApproved = isApproved,
+                isFullyApproved = isApproved,
+                actorName = user.name,
+                actorRole = user.role.displayName,
+                remarksOrReason = remarks,
+                currentLevel = 2,
+                requiredLevel = 2
+            )
+
+            _toastMessage.value = if (isApproved) "Triggered High-Value Approval Alert" else "Triggered High-Value Rejection Alert"
+        }
+    }
+
     // Purchase Request Submission
     fun submitNewRequest(
         department: String,
@@ -293,6 +338,36 @@ class ProcurementViewModel(application: Application) : AndroidViewModel(applicat
             val user = currentUser.value ?: return@launch
             val res = repository.approvePurchaseRequest(requestId, user, remarks)
             _toastMessage.value = res.message
+
+            if (res.success && res.data is PurchaseRequestEntity) {
+                val req = res.data
+                if (LocalNotificationManager.isHighValue(req.estimatedAmount)) {
+                    val isFullyApproved = req.status == RequestStatus.APPROVED || req.status == RequestStatus.CONVERTED_TO_PO
+                    LocalNotificationManager.showHighValueOrderNotification(
+                        context = getApplication(),
+                        poNumber = req.requestNumber,
+                        amount = req.estimatedAmount,
+                        isApproved = true,
+                        isFullyApproved = isFullyApproved,
+                        actorName = user.name,
+                        actorRole = user.role.displayName,
+                        remarksOrReason = remarks,
+                        currentLevel = req.currentApprovalLevel,
+                        requiredLevel = req.requiredApprovalLevel
+                    )
+                    _highValueOrderAlert.value = HighValueOrderAlert(
+                        poNumber = req.requestNumber,
+                        amount = req.estimatedAmount,
+                        isApproved = true,
+                        isFullyApproved = isFullyApproved,
+                        actorName = user.name,
+                        actorRole = user.role.displayName,
+                        remarksOrReason = remarks,
+                        currentLevel = req.currentApprovalLevel,
+                        requiredLevel = req.requiredApprovalLevel
+                    )
+                }
+            }
             refreshRecommendations()
         }
     }
@@ -302,6 +377,33 @@ class ProcurementViewModel(application: Application) : AndroidViewModel(applicat
             val user = currentUser.value ?: return@launch
             val res = repository.rejectPurchaseRequest(requestId, user, reason)
             _toastMessage.value = res.message
+
+            val req = db.purchaseRequestDao().getRequestById(requestId)
+            if (req != null && LocalNotificationManager.isHighValue(req.estimatedAmount)) {
+                LocalNotificationManager.showHighValueOrderNotification(
+                    context = getApplication(),
+                    poNumber = req.requestNumber,
+                    amount = req.estimatedAmount,
+                    isApproved = false,
+                    isFullyApproved = false,
+                    actorName = user.name,
+                    actorRole = user.role.displayName,
+                    remarksOrReason = reason,
+                    currentLevel = req.currentApprovalLevel,
+                    requiredLevel = req.requiredApprovalLevel
+                )
+                _highValueOrderAlert.value = HighValueOrderAlert(
+                    poNumber = req.requestNumber,
+                    amount = req.estimatedAmount,
+                    isApproved = false,
+                    isFullyApproved = false,
+                    actorName = user.name,
+                    actorRole = user.role.displayName,
+                    remarksOrReason = reason,
+                    currentLevel = req.currentApprovalLevel,
+                    requiredLevel = req.requiredApprovalLevel
+                )
+            }
             refreshRecommendations()
         }
     }
@@ -321,6 +423,36 @@ class ProcurementViewModel(application: Application) : AndroidViewModel(applicat
             val user = currentUser.value ?: return@launch
             val res = repository.approvePurchaseOrderLevel(orderId, user, remarks)
             _toastMessage.value = res.message
+
+            if (res.success && res.data is PurchaseOrderEntity) {
+                val order = res.data
+                if (LocalNotificationManager.isHighValue(order.totalAmount)) {
+                    val isFully = order.isFullyApproved || order.status == OrderStatus.SENT_TO_SUPPLIER
+                    LocalNotificationManager.showHighValueOrderNotification(
+                        context = getApplication(),
+                        poNumber = order.poNumber,
+                        amount = order.totalAmount,
+                        isApproved = true,
+                        isFullyApproved = isFully,
+                        actorName = user.name,
+                        actorRole = user.role.displayName,
+                        remarksOrReason = remarks,
+                        currentLevel = order.currentApprovalLevel,
+                        requiredLevel = order.requiredApprovalLevel
+                    )
+                    _highValueOrderAlert.value = HighValueOrderAlert(
+                        poNumber = order.poNumber,
+                        amount = order.totalAmount,
+                        isApproved = true,
+                        isFullyApproved = isFully,
+                        actorName = user.name,
+                        actorRole = user.role.displayName,
+                        remarksOrReason = remarks,
+                        currentLevel = order.currentApprovalLevel,
+                        requiredLevel = order.requiredApprovalLevel
+                    )
+                }
+            }
             refreshRecommendations()
         }
     }
@@ -330,6 +462,35 @@ class ProcurementViewModel(application: Application) : AndroidViewModel(applicat
             val user = currentUser.value ?: return@launch
             val res = repository.rejectPurchaseOrder(orderId, user, reason)
             _toastMessage.value = res.message
+
+            if (res.success && res.data is PurchaseOrderEntity) {
+                val order = res.data
+                if (LocalNotificationManager.isHighValue(order.totalAmount)) {
+                    LocalNotificationManager.showHighValueOrderNotification(
+                        context = getApplication(),
+                        poNumber = order.poNumber,
+                        amount = order.totalAmount,
+                        isApproved = false,
+                        isFullyApproved = false,
+                        actorName = user.name,
+                        actorRole = user.role.displayName,
+                        remarksOrReason = reason,
+                        currentLevel = order.currentApprovalLevel,
+                        requiredLevel = order.requiredApprovalLevel
+                    )
+                    _highValueOrderAlert.value = HighValueOrderAlert(
+                        poNumber = order.poNumber,
+                        amount = order.totalAmount,
+                        isApproved = false,
+                        isFullyApproved = false,
+                        actorName = user.name,
+                        actorRole = user.role.displayName,
+                        remarksOrReason = reason,
+                        currentLevel = order.currentApprovalLevel,
+                        requiredLevel = order.requiredApprovalLevel
+                    )
+                }
+            }
             refreshRecommendations()
         }
     }

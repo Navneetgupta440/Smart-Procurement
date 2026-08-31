@@ -24,7 +24,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FactCheck
 import androidx.compose.material.icons.filled.Inventory
@@ -39,19 +41,27 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -124,6 +134,9 @@ fun DashboardScreen(
     val recentAuditLogs by viewModel.allAuditLogs.collectAsStateWithLifecycle(emptyList())
     val topSupplier by viewModel.topPerformingSupplier.collectAsStateWithLifecycle()
     val demoStep by viewModel.demoLifecycleStep.collectAsStateWithLifecycle()
+
+    var requestToReject by remember { mutableStateOf<PurchaseRequestEntity?>(null) }
+    var rejectionReason by remember { mutableStateOf("") }
 
     val pendingRequests = allRequests.filter {
         it.status == RequestStatus.PENDING_APPROVAL || it.status == RequestStatus.SUBMITTED
@@ -497,11 +510,21 @@ fun DashboardScreen(
                             )
                         }
                     } else {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            pendingRequests.take(3).forEach { req ->
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            pendingRequests.take(4).forEach { req ->
                                 PendingApprovalBentoItem(
                                     request = req,
-                                    onClick = { onNavigate(AppTab.REQUESTS) }
+                                    onClick = {
+                                        viewModel.selectRequest(req)
+                                        onNavigate(AppTab.REQUESTS)
+                                    },
+                                    onQuickApprove = {
+                                        viewModel.approveRequest(req.id, "Quick approved via Executive Dashboard")
+                                    },
+                                    onQuickReject = {
+                                        requestToReject = req
+                                        rejectionReason = "Requires budget re-allocation or specification review"
+                                    }
                                 )
                             }
                         }
@@ -1364,6 +1387,76 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(20.dp))
         }
     }
+
+    // Direct Rejection Dialog for Quick Dashboard Actions
+    if (requestToReject != null) {
+        val req = requestToReject!!
+        AlertDialog(
+            onDismissRequest = { requestToReject = null },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = null,
+                    tint = StatusError,
+                    modifier = Modifier.size(28.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "Reject Request ${req.requestNumber}",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "Submitted by ${req.requesterName} (${req.department}) for ${formatCurrency(req.estimatedAmount)}.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = rejectionReason,
+                        onValueChange = { rejectionReason = it },
+                        label = { Text("Rejection Reason") },
+                        placeholder = { Text("Enter justification for rejecting...") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("dashboard_rejection_reason_input"),
+                        shape = RoundedCornerShape(12.dp),
+                        minLines = 2,
+                        maxLines = 4
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.rejectRequest(
+                            req.id,
+                            rejectionReason.ifBlank { "Rejected during Executive Dashboard review" }
+                        )
+                        requestToReject = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = StatusError),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.testTag("confirm_dashboard_reject_button")
+                ) {
+                    Text("Confirm Rejection", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { requestToReject = null },
+                    modifier = Modifier.testTag("cancel_dashboard_reject_button")
+                ) {
+                    Text("Cancel")
+                }
+            },
+            shape = RoundedCornerShape(20.dp)
+        )
+    }
 }
 
 // -------------------------------------------------------------
@@ -1373,56 +1466,147 @@ fun DashboardScreen(
 @Composable
 fun PendingApprovalBentoItem(
     request: PurchaseRequestEntity,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onQuickApprove: () -> Unit,
+    onQuickReject: () -> Unit
 ) {
     Surface(
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(18.dp),
         color = Color.White.copy(alpha = 0.95f),
         border = BorderStroke(1.dp, BentoBorder),
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .testTag("pending_approval_card_${request.requestNumber}")
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(14.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            // Requisition Summary Header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onClick() },
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = request.requestNumber,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = BentoTextPrimary
+                        )
+                        PriorityBadge(priority = request.priority)
+                    }
+                    Spacer(modifier = Modifier.height(3.dp))
                     Text(
-                        text = request.requestNumber,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = BentoTextPrimary
+                        text = "${request.department} • Requester: ${request.requesterName}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = BentoTextSecondary,
+                        maxLines = 1
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    PriorityBadge(priority = request.priority)
+                    if (request.reason.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Purpose: ${request.reason}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = BentoTextSecondary.copy(alpha = 0.85f),
+                            maxLines = 1
+                        )
+                    }
                 }
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "${request.department} • Requester: ${request.requesterName}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = BentoTextSecondary,
-                    maxLines = 1
-                )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = formatCurrency(request.estimatedAmount),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = BentoAmberOnContainer
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = BentoAmberContainer,
+                        modifier = Modifier.padding(top = 2.dp)
+                    ) {
+                        Text(
+                            text = "Tier ${request.currentApprovalLevel}/${request.requiredApprovalLevel}",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = BentoAmberOnContainer,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
             }
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = formatCurrency(request.estimatedAmount),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "Tap to Review",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontSize = 10.sp,
-                    color = BentoAmberOnContainer,
-                    fontWeight = FontWeight.SemiBold
-                )
+
+            Spacer(modifier = Modifier.height(10.dp))
+            HorizontalDivider(color = BentoBorder.copy(alpha = 0.7f))
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Action Buttons: Direct Reject & Quick Approve
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Reject Action
+                OutlinedButton(
+                    onClick = onQuickReject,
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag("quick_reject_btn_${request.requestNumber}"),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = StatusError
+                    ),
+                    border = BorderStroke(1.dp, StatusError.copy(alpha = 0.5f))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = null,
+                        tint = StatusError,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Reject",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        color = StatusError
+                    )
+                }
+
+                // Quick Approve Action
+                Button(
+                    onClick = onQuickApprove,
+                    modifier = Modifier
+                        .weight(1.3f)
+                        .testTag("quick_approve_btn_${request.requestNumber}"),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = StatusSuccess
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Quick Approve",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        color = Color.White
+                    )
+                }
             }
         }
     }
