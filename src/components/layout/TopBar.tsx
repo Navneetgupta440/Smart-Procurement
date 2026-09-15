@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useProcurement } from '../../context/ProcurementContext';
-import { UserRole } from '../../types/procurement';
+import { UserRole, AppTab } from '../../types/procurement';
 import {
   Bell,
   Sun,
@@ -11,16 +11,27 @@ import {
   UserCheck,
   ChevronDown,
   Building2,
-  Sliders,
+  Download,
+  Loader2,
+  Sparkles,
+  ShoppingBag,
+  Info,
 } from 'lucide-react';
 import { RoleBadge } from '../common/StatusBadges';
+import { ProcureLogo } from '../common/ProcureLogo';
+import { exportProjectZip, triggerBlobDownload } from '../../utils/projectZipExport';
 
 interface TopBarProps {
   onOpenNotifications: () => void;
   onOpenAuth: () => void;
+  onOpenWalkthrough: () => void;
 }
 
-export const TopBar: React.FC<TopBarProps> = ({ onOpenNotifications, onOpenAuth }) => {
+export const TopBar: React.FC<TopBarProps> = ({
+  onOpenNotifications,
+  onOpenAuth,
+  onOpenWalkthrough,
+}) => {
   const {
     currentUser,
     allUsers,
@@ -29,71 +40,123 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenNotifications, onOpenAuth 
     toggleTheme,
     unreadNotificationCount,
     demoLifecycleStep,
-    advanceDemoLifecycle,
     resetDemoLifecycle,
     triggerTestHighValueAlert,
+    addToast,
+    setActiveTab,
+    activeTab,
   } = useProcurement();
 
   const [showPersonaMenu, setShowPersonaMenu] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportZip = async () => {
+    setIsExporting(true);
+    try {
+      const blob = await exportProjectZip();
+      triggerBlobDownload(blob, 'smart-procurement-spring-boot-postgres.zip');
+      addToast('success', 'ZIP Exported', 'Spring Boot 3.3.x, Flyway & Docker package downloaded');
+    } catch {
+      addToast('error', 'Export Failed', 'Could not compile project ZIP');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#191C20]/95 backdrop-blur-md border-b border-[#E2E2E6] dark:border-[#33363A] px-4 lg:px-6 py-2.5 transition-colors">
+    <header className="sticky top-0 z-40 bg-[#FFFFFF]/95 dark:bg-[#191C20]/95 backdrop-blur-md border-b border-[#121212]/10 dark:border-[#33363A] px-4 lg:px-6 py-2.5 transition-colors">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Brand */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#00639A] text-white flex items-center justify-center font-extrabold shadow-sm">
-            <Building2 className="w-5 h-5" />
-          </div>
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab(AppTab.DASHBOARD)}>
+          <ProcureLogo size="md" />
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-base tracking-tight text-[#191C20] dark:text-[#E2E2E6]">
-                SmartProcure
+              <span className="font-serif text-lg font-bold tracking-tight text-[#121212] dark:text-[#E2E2E6]">
+                Smart Procurement
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-[#00639A] dark:text-sky-300">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#F4F0E8] dark:bg-slate-800 text-[#121212] dark:text-slate-200 border border-[#121212]/10 dark:border-slate-700">
                 Enterprise
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">
-              Multi-Tier Procurement & Order Management
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 hidden sm:block">
+              SOURCE • SIMPLIFY • SAVE
             </p>
           </div>
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Interactive Demo Lifecycle Stepper button */}
-          <div className="hidden md:flex items-center gap-1 bg-[#D3E4FF]/60 dark:bg-[#004A77]/30 border border-blue-200 dark:border-blue-900 rounded-xl px-2.5 py-1 text-xs">
-            <button
-              onClick={() => advanceDemoLifecycle()}
-              className="flex items-center gap-1.5 font-semibold text-[#001C3B] dark:text-sky-200 hover:text-[#00639A] transition-colors"
-              title="Click to advance the full 7-step procurement lifecycle"
-            >
-              <Play className="w-3.5 h-3.5 fill-current text-[#00639A] dark:text-sky-400" />
-              <span>Demo Step {demoLifecycleStep}/7</span>
-            </button>
-            <button
-              onClick={resetDemoLifecycle}
-              className="p-1 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
-              title="Reset demo cycle"
-            >
-              <RotateCcw className="w-3 h-3" />
-            </button>
-          </div>
+          {/* Shopping Procure Store Quick Button */}
+          <button
+            onClick={() => setActiveTab(AppTab.SHOPPING)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              activeTab === AppTab.SHOPPING
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'bg-blue-50 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-200 dark:border-blue-900 hover:bg-blue-100'
+            }`}
+            title="Browse Procure E-Procurement Catalog"
+          >
+            <ShoppingBag className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Procure Store</span>
+          </button>
+
+          {/* About Project & Creator Quick Button */}
+          <button
+            onClick={() => setActiveTab(AppTab.ABOUT)}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              activeTab === AppTab.ABOUT
+                ? 'bg-amber-400 text-[#121212] shadow-xs'
+                : 'bg-[#F4F0E8] text-slate-800 dark:bg-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-200'
+            }`}
+            title="About Project Architecture & Founder Profile"
+          >
+            <Info className="w-3.5 h-3.5 text-amber-600" />
+            <span className="hidden sm:inline">About</span>
+          </button>
+
+          {/* 7-Stage Interactive Walkthrough Button */}
+          <button
+            onClick={onOpenWalkthrough}
+            className="flex items-center gap-2 bg-[#121212] text-white hover:bg-slate-800 dark:bg-amber-400 dark:text-[#121212] dark:hover:bg-amber-300 rounded-xl px-3 py-1.5 text-xs font-bold shadow-xs transition-all active:scale-95"
+            title="Open 7-Stage Interactive Walkthrough"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-400 dark:text-[#121212]" />
+            <span className="hidden sm:inline">7-Stage Interactive Walkthrough</span>
+            <span className="sm:hidden">Walkthrough</span>
+            <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 dark:bg-black/20">
+              {demoLifecycleStep}/7
+            </span>
+          </button>
+
+          {/* Export Project ZIP */}
+          <button
+            onClick={handleExportZip}
+            disabled={isExporting}
+            className="hidden md:flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1E2128] text-slate-800 dark:text-slate-200 hover:border-[#121212] transition-colors"
+            title="Download Spring Boot 3.3.x, Flyway Migrations (26 tables) & Docker Compose"
+          >
+            {isExporting ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#00639A]" />
+            ) : (
+              <Download className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300" />
+            )}
+            <span>Export ZIP</span>
+          </button>
 
           {/* Test High Value Alert trigger */}
           <button
             onClick={() => triggerTestHighValueAlert(true)}
-            className="hidden lg:flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 hover:bg-amber-100 transition-colors"
+            className="hidden xl:flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-amber-200 dark:border-amber-900 bg-[#F4F0E8] dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 hover:bg-amber-100 transition-colors"
             title="Trigger executive high-value PO alert banner"
           >
-            <ShieldAlert className="w-3.5 h-3.5" />
+            <ShieldAlert className="w-3.5 h-3.5 text-amber-700" />
             <span>High-Value Alert</span>
           </button>
 
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             title={themeMode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             aria-label="Toggle Theme"
           >
@@ -103,7 +166,7 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenNotifications, onOpenAuth 
           {/* Notifications Bell */}
           <button
             onClick={onOpenNotifications}
-            className="relative p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="relative p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             title="View In-App Notifications"
             aria-label="Notifications"
           >
@@ -119,13 +182,13 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenNotifications, onOpenAuth 
           <div className="relative">
             <button
               onClick={() => setShowPersonaMenu(!showPersonaMenu)}
-              className="flex items-center gap-2 p-1.5 sm:px-2.5 rounded-xl border border-[#E2E2E6] dark:border-[#33363A] bg-white dark:bg-[#191C20] hover:border-[#00639A] transition-all text-left shadow-xs"
+              className="flex items-center gap-2 p-1.5 sm:px-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#191C20] hover:border-[#121212] transition-all text-left shadow-2xs"
             >
-              <div className="w-7 h-7 rounded-lg bg-[#D3E4FF] dark:bg-[#004A77] text-[#001C3B] dark:text-sky-200 flex items-center justify-center font-bold text-xs">
+              <div className="w-7 h-7 rounded-lg bg-[#121212] dark:bg-white text-white dark:text-[#121212] flex items-center justify-center font-bold text-xs">
                 {currentUser.name.charAt(0)}
               </div>
               <div className="hidden sm:block">
-                <div className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">
+                <div className="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight">
                   {currentUser.name}
                 </div>
                 <div className="text-[10px] text-slate-500 dark:text-slate-400">
@@ -142,13 +205,14 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenNotifications, onOpenAuth 
                   className="fixed inset-0 z-40"
                   onClick={() => setShowPersonaMenu(false)}
                 />
-                <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-[#191C20] rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                      Switch Role Persona (7 Roles)
+                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-[#191C20] rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-3.5 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <p className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
+                      7 Enterprise Personas
                     </p>
+                    <span className="text-[10px] text-slate-500">Click to switch</span>
                   </div>
-                  <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60">
+                  <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60">
                     {allUsers.map((u) => {
                       const isSelected = u.id === currentUser.id;
                       return (
@@ -158,15 +222,15 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenNotifications, onOpenAuth 
                             switchUserById(u.id);
                             setShowPersonaMenu(false);
                           }}
-                          className={`w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors ${
-                            isSelected ? 'bg-blue-50/70 dark:bg-blue-950/40' : ''
+                          className={`w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors ${
+                            isSelected ? 'bg-amber-50/60 dark:bg-amber-950/20' : ''
                           }`}
                         >
                           <div className="flex items-center gap-2.5">
                             <div
                               className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${
                                 isSelected
-                                  ? 'bg-[#00639A] text-white'
+                                  ? 'bg-[#121212] text-white dark:bg-white dark:text-[#121212]'
                                   : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                               }`}
                             >
@@ -192,10 +256,10 @@ export const TopBar: React.FC<TopBarProps> = ({ onOpenNotifications, onOpenAuth 
                         setShowPersonaMenu(false);
                         onOpenAuth();
                       }}
-                      className="w-full py-1.5 px-3 text-xs font-semibold text-[#00639A] dark:text-sky-400 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg flex items-center justify-center gap-1.5"
+                      className="w-full py-1.5 px-3 text-xs font-semibold text-[#121212] dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center justify-center gap-1.5"
                     >
                       <UserCheck className="w-3.5 h-3.5" />
-                      Account Profile & Sign Up
+                      Account Profile &amp; Sign Up
                     </button>
                   </div>
                 </div>

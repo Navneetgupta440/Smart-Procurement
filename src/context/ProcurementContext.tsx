@@ -217,7 +217,25 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Load or initialize state
   const [users, setUsers] = useState<User[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.USERS);
-    return saved ? JSON.parse(saved) : INITIAL_USERS;
+    if (saved) {
+      try {
+        const parsed: User[] = JSON.parse(saved);
+        return parsed.map((u) => {
+          if (u.id === 'usr-admin' || u.name === 'Vikram Malhotra') {
+            return {
+              ...u,
+              id: 'usr-admin',
+              name: 'Navneet Gupta',
+              email: 'indianavneetgupta33@gmail.com',
+            };
+          }
+          return u;
+        });
+      } catch {
+        return INITIAL_USERS;
+      }
+    }
+    return INITIAL_USERS;
   });
 
   const [currentUserId, setCurrentUserId] = useState<string>(() => {
@@ -241,7 +259,20 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const [orders, setOrders] = useState<PurchaseOrder[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.ORDERS);
-    return saved ? JSON.parse(saved) : INITIAL_ORDERS;
+    if (saved) {
+      try {
+        const parsed: PurchaseOrder[] = JSON.parse(saved);
+        return parsed.map((order) => ({
+          ...order,
+          approvalSignaturesJson: order.approvalSignaturesJson
+            ? order.approvalSignaturesJson.replace(/Vikram Malhotra/g, 'Navneet Gupta')
+            : order.approvalSignaturesJson,
+        }));
+      } catch {
+        return INITIAL_ORDERS;
+      }
+    }
+    return INITIAL_ORDERS;
   });
 
   const [deliveries, setDeliveries] = useState<Delivery[]>(() => {
@@ -261,7 +292,17 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.AUDIT_LOGS);
-    return saved ? JSON.parse(saved) : INITIAL_AUDIT_LOGS;
+    if (saved) {
+      try {
+        const parsed: AuditLog[] = JSON.parse(saved);
+        return parsed.map((log) =>
+          log.userName === 'Vikram Malhotra' ? { ...log, userName: 'Navneet Gupta' } : log
+        );
+      } catch {
+        return INITIAL_AUDIT_LOGS;
+      }
+    }
+    return INITIAL_AUDIT_LOGS;
   });
 
   const [ratings, setRatings] = useState<SupplierPerformanceRating[]>(() => {

@@ -257,6 +257,11 @@ export interface Product {
   category?: string; // alias for categoryName
   supplierId: string;
   unitPrice: number;
+  originalPrice?: number;
+  discountPercent?: number;
+  rating?: number;
+  ratingCount?: number;
+  imageUrl?: string;
   unitOfMeasure: string;
   unit?: string; // alias for unitOfMeasure
   availableQuantity: number;
@@ -265,6 +270,11 @@ export interface Product {
   reorderQuantity: number;
   isLowStock: boolean;
   status: string;
+  assuredBadge?: boolean;
+  features?: string[];
+  brand?: string;
+  deliveryDays?: number;
+  warranty?: string;
 }
 
 export interface Supplier {
@@ -533,6 +543,7 @@ export interface HighValueOrderAlert {
 
 export enum AppTab {
   DASHBOARD = 'DASHBOARD',
+  SHOPPING = 'SHOPPING',
   REQUESTS = 'REQUESTS',
   ORDERS = 'ORDERS',
   HISTORY = 'HISTORY',
@@ -542,6 +553,7 @@ export enum AppTab {
   ANALYTICS = 'ANALYTICS',
   MEMBERSHIP = 'MEMBERSHIP',
   API_CONSOLE = 'API_CONSOLE',
+  ABOUT = 'ABOUT',
 }
 
 export interface ProcurementKpiSummary {

@@ -25,40 +25,34 @@ export class PoApprovalWorkflowEngine {
     totalAmount: number,
     settings: SystemSettings = this.DEFAULT_SETTINGS
   ): PoApprovalTier {
-    return totalAmount < 25000.0
+    const t1Limit = settings.approvalLimitManager || 15000.0;
+    const t2Limit = settings.approvalLimitProcurementManager || 100000.0;
+
+    return totalAmount < t1Limit
       ? {
           tierNumber: 1,
-          title: 'Tier 1 - Standard Order',
+          title: 'Tier 1 (< ₹15,000)',
           minAmount: 0.0,
-          maxAmount: 25000.0,
+          maxAmount: t1Limit,
           requiredSignatures: 1,
-          description: 'Requires Department Approving Manager digital sign-off.',
+          description: 'Department Manager authorization within local operating budget.',
         }
-      : totalAmount <= 100000.0
+      : totalAmount <= t2Limit
       ? {
           tierNumber: 2,
-          title: 'Tier 2 - Mid-Value Expenditure',
-          minAmount: 25000.0,
-          maxAmount: 100000.0,
+          title: 'Tier 2 (₹15,000 – ₹1,00,000)',
+          minAmount: t1Limit,
+          maxAmount: t2Limit,
           requiredSignatures: 2,
-          description: 'Requires Department Manager + Procurement Manager sign-off.',
-        }
-      : totalAmount <= 500000.0
-      ? {
-          tierNumber: 3,
-          title: 'Tier 3 - High-Value Capital',
-          minAmount: 100000.0,
-          maxAmount: 500000.0,
-          requiredSignatures: 3,
-          description: 'Requires Dept Manager + Procurement Manager + Finance Director sign-off.',
+          description: 'Department Manager → Procurement Officer authorization.',
         }
       : {
-          tierNumber: 4,
-          title: 'Tier 4 - Strategic Enterprise Spend',
-          minAmount: 500000.0,
+          tierNumber: 3,
+          title: 'Tier 3 (> ₹1,00,000)',
+          minAmount: t2Limit,
           maxAmount: 99999999.0,
-          requiredSignatures: 4,
-          description: 'Requires Dept Mgr + Procurement Mgr + Finance Director + CFO / Board sign-off.',
+          requiredSignatures: 3,
+          description: 'Department Manager → Procurement Officer → Executive Admin authorization.',
         };
   }
 
@@ -67,54 +61,43 @@ export class PoApprovalWorkflowEngine {
     settings: SystemSettings = this.DEFAULT_SETTINGS
   ): PoApprovalStepInfo[] {
     const steps: PoApprovalStepInfo[] = [];
+    const t1Limit = settings.approvalLimitManager || 15000.0;
+    const t2Limit = settings.approvalLimitProcurementManager || 100000.0;
 
-    // Level 1: Always required
+    // Level 1: Always required (Department Manager)
     steps.push({
       level: 1,
-      tierName: 'Tier 1 - Department Authorization',
+      tierName: 'Tier 1 - Department Manager',
       requiredRole: UserRole.APPROVING_MANAGER,
-      thresholdAmount: Math.min(totalAmount, 25000.0),
+      thresholdAmount: Math.min(totalAmount, t1Limit),
       isSigned: false,
-      stepDescription: 'Department Approving Manager verification of project requisition and budget allocation.',
-      shortRoleTitle: 'Approving Manager',
+      stepDescription: 'Department Manager authorization of project scope and departmental budget.',
+      shortRoleTitle: 'Department Manager',
     });
 
-    // Level 2: For amounts >= 25,000
-    if (totalAmount >= 25000.0) {
+    // Level 2: For amounts >= 15,000 (Procurement Officer)
+    if (totalAmount >= t1Limit) {
       steps.push({
         level: 2,
-        tierName: 'Tier 2 - Commercial Audit',
+        tierName: 'Tier 2 - Procurement Officer',
         requiredRole: UserRole.PROCUREMENT_MANAGER,
-        thresholdAmount: Math.min(totalAmount, 100000.0),
+        thresholdAmount: Math.min(totalAmount, t2Limit),
         isSigned: false,
-        stepDescription: 'Procurement Manager verification of vendor quote competitiveness and lead time terms.',
-        shortRoleTitle: 'Procurement Manager',
+        stepDescription: 'Procurement Officer review of vendor scoring, lead times, and tax compliance.',
+        shortRoleTitle: 'Procurement Officer',
       });
     }
 
-    // Level 3: For amounts >= 100,000
-    if (totalAmount >= 100000.0) {
+    // Level 3: For amounts > 100,000 (Executive Admin)
+    if (totalAmount > t2Limit) {
       steps.push({
         level: 3,
-        tierName: 'Tier 3 - Executive Financial Sign-Off',
-        requiredRole: UserRole.ADMIN,
-        thresholdAmount: Math.min(totalAmount, 500000.0),
-        isSigned: false,
-        stepDescription: 'Finance Director review of quarterly fiscal runway and risk exposure.',
-        shortRoleTitle: 'Finance Director',
-      });
-    }
-
-    // Level 4: For amounts >= 500,000
-    if (totalAmount >= 500000.0) {
-      steps.push({
-        level: 4,
-        tierName: 'Tier 4 - Board & CFO Ratification',
+        tierName: 'Tier 3 - Executive Admin',
         requiredRole: UserRole.ADMIN,
         thresholdAmount: totalAmount,
         isSigned: false,
-        stepDescription: 'CFO / Enterprise Board of Directors final authorization for major capital procurement.',
-        shortRoleTitle: 'CFO / Board',
+        stepDescription: 'Executive Admin governance sign-off and risk exposure verification.',
+        shortRoleTitle: 'Executive Admin',
       });
     }
 

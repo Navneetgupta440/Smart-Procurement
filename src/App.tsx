@@ -6,6 +6,7 @@ import { BottomNav } from './components/layout/BottomNav';
 import { HighValueAlertBanner } from './components/layout/HighValueAlertBanner';
 import { NotificationsModal } from './components/layout/NotificationsModal';
 import { AuthDialog } from './components/layout/AuthDialog';
+import { WalkthroughModal } from './components/modals/WalkthroughModal';
 
 import { DashboardScreen } from './components/screens/DashboardScreen';
 import { PurchaseRequestsScreen } from './components/screens/PurchaseRequestsScreen';
@@ -17,6 +18,8 @@ import { InventoryScreen } from './components/screens/InventoryScreen';
 import { AnalyticsAuditScreen } from './components/screens/AnalyticsAuditScreen';
 import { MembershipScreen } from './components/screens/MembershipScreen';
 import { ApiConsoleScreen } from './components/screens/ApiConsoleScreen';
+import { ShoppingCatalogScreen } from './components/screens/ShoppingCatalogScreen';
+import { AboutScreen } from './components/screens/AboutScreen';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
@@ -30,10 +33,14 @@ const MainLayout: React.FC = () => {
     removeToast,
   } = useProcurement();
 
+  const [showWalkthroughModal, setShowWalkthroughModal] = React.useState(false);
+
   const renderActiveScreen = () => {
     switch (activeTab) {
       case AppTab.DASHBOARD:
         return <DashboardScreen />;
+      case AppTab.SHOPPING:
+        return <ShoppingCatalogScreen />;
       case AppTab.REQUESTS:
         return <PurchaseRequestsScreen />;
       case AppTab.ORDERS:
@@ -52,17 +59,20 @@ const MainLayout: React.FC = () => {
         return <MembershipScreen />;
       case AppTab.API_CONSOLE:
         return <ApiConsoleScreen />;
+      case AppTab.ABOUT:
+        return <AboutScreen />;
       default:
         return <DashboardScreen />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F3F4F9] dark:bg-[#111318] text-[#191C20] dark:text-[#E2E2E6] flex flex-col font-sans transition-colors duration-200">
+    <div className="min-h-screen bg-[#F9F7F2] dark:bg-[#111318] text-[#121212] dark:text-[#E2E2E6] flex flex-col font-sans transition-colors duration-200">
       {/* Top Application Bar */}
       <TopBar
         onOpenNotifications={() => setShowNotificationsModal(true)}
         onOpenAuth={() => setShowAuthDialog(true)}
+        onOpenWalkthrough={() => setShowWalkthroughModal(true)}
       />
 
       {/* Navigation Bar */}
@@ -77,18 +87,24 @@ const MainLayout: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-[#E2E2E6] dark:border-[#33363A] bg-white/70 dark:bg-[#191C20]/70 py-4 px-6 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl mx-auto w-full">
+      <footer className="border-t border-[#121212]/10 dark:border-[#33363A] bg-white/70 dark:bg-[#191C20]/70 py-4 px-6 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2 max-w-7xl mx-auto w-full">
         <div>
-          <strong className="text-slate-800 dark:text-slate-200">Smart Procurement Platform</strong> — Multi-Level Hierarchical Approvals & Automated Inwarding
+          <strong className="text-slate-800 dark:text-slate-200 font-serif">Smart Procurement Platform</strong> — Multi-Tier Dynamic Approvals, Algorithmic Sourcing &amp; Automated Inwarding
         </div>
-        <div className="flex items-center gap-4 text-[11px]">
-          <span>GST / Tax Engine 18%</span>
+        <div className="flex items-center gap-4 text-[11px] font-mono">
+          <span>GST 18% Engine</span>
           <span>•</span>
-          <span>4-Tier Authorization Matrix</span>
+          <span>3-Tier Authorization Matrix</span>
           <span>•</span>
           <span>SLA Tracking</span>
         </div>
       </footer>
+
+      {/* 7-Stage Walkthrough Modal */}
+      <WalkthroughModal
+        isOpen={showWalkthroughModal}
+        onClose={() => setShowWalkthroughModal(false)}
+      />
 
       {/* Notifications Drawer/Modal */}
       {showNotificationsModal && (

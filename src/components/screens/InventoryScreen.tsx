@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useProcurement } from '../../context/ProcurementContext';
-import { Priority, Product, TransactionType } from '../../types/procurement';
+import { Priority, Product, TransactionType, AppTab } from '../../types/procurement';
 import {
   Boxes,
   AlertTriangle,
@@ -14,6 +14,8 @@ import {
   X,
   Sliders,
   CheckCircle2,
+  Package,
+  ShoppingBag,
 } from 'lucide-react';
 
 export const InventoryScreen: React.FC = () => {
@@ -86,13 +88,23 @@ export const InventoryScreen: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-xl font-black text-slate-900 dark:text-slate-100">
-          Enterprise Inventory & Automated Inwarding
-        </h2>
-        <p className="text-xs text-slate-500">
-          Real-time warehouse stock balances, low-stock threshold triggers, and inbound receipt ledger
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-black text-slate-900 dark:text-slate-100">
+            Enterprise Inventory & Automated Inwarding
+          </h2>
+          <p className="text-xs text-slate-500">
+            Real-time warehouse stock balances, low-stock threshold triggers, and inbound receipt ledger
+          </p>
+        </div>
+
+        <button
+          onClick={() => setActiveTab(AppTab.SHOPPING)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-colors self-start sm:self-auto"
+        >
+          <ShoppingBag className="w-4 h-4" />
+          <span>Procure Shopping Catalog</span>
+        </button>
       </div>
 
       {/* Replenishment Recommendations Shelf */}
@@ -211,8 +223,24 @@ export const InventoryScreen: React.FC = () => {
                 return (
                   <tr key={prod.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                     <td className="py-3 font-medium text-slate-900 dark:text-slate-100">
-                      <div>{prod.name}</div>
-                      <div className="font-mono text-[10px] text-slate-400">{prod.productCode}</div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 p-1 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 overflow-hidden">
+                          {prod.imageUrl ? (
+                            <img
+                              src={prod.imageUrl}
+                              alt={prod.name}
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <Package className="w-5 h-5 text-slate-400" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-xs sm:text-sm line-clamp-1">{prod.name}</div>
+                          <div className="font-mono text-[10px] text-slate-400">{prod.productCode}</div>
+                        </div>
+                      </div>
                     </td>
                     <td className="py-3 text-slate-600 dark:text-slate-300">
                       <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium">

@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <!-- Blue Ribbon Gradient -->
+    <linearGradient id="blueGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1565C0" />
+      <stop offset="50%" stop-color="#0D47A1" />
+      <stop offset="100%" stop-color="#002171" />
+    </linearGradient>
+    <linearGradient id="blueGrad2" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1976D2" />
+      <stop offset="60%" stop-color="#1565C0" />
+      <stop offset="100%" stop-color="#0D47A1" />
+    </linearGradient>
+    <linearGradient id="blueDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A1E3F" />
+      <stop offset="100%" stop-color="#051026" />
+    </linearGradient>
+
+    <!-- Green Ribbon Gradient -->
+    <linearGradient id="greenGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00A86B" />
+      <stop offset="50%" stop-color="#008954" />
+      <stop offset="100%" stop-color="#005B38" />
+    </linearGradient>
+    <linearGradient id="greenGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="50%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <linearGradient id="greenDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#004D2C" />
+      <stop offset="100%" stop-color="#00331D" />
+    </linearGradient>
+
+    <!-- Isometric Cube Gradients -->
+    <linearGradient id="cubeTopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#10B981" />
+    </linearGradient>
+    <linearGradient id="cubeLeftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <linearGradient id="cubeRightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#065F46" />
+      <stop offset="100%" stop-color="#022C22" />
+    </linearGradient>
+
+    <filter id="subtleDrop" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.15" />
+    </filter>
+  </defs>
+
+  <g transform="translate(50, 20)">
+    <!-- BLUE RIBBON (Forming 'S' & intertwining with 'P') -->
+    <!-- Top stem curve -->
+    <path d="M 230 40 
+             C 275 40, 290 85, 290 120 
+             L 290 145 
+             C 290 145, 275 140, 245 140 
+             L 245 105 
+             C 245 80, 230 75, 210 75 
+             C 175 75, 140 100, 140 145 
+             C 140 185, 185 220, 235 250 
+             L 245 285 
+             C 180 245, 100 205, 100 140 
+             C 100 70, 160 40, 230 40 Z" 
+          fill="url(#blueGrad1)" 
+          filter="url(#subtleDrop)" />
+
+    <!-- Blue middle fold slice -->
+    <path d="M 235 250 
+             L 170 330 
+             L 100 350 
+             L 100 310 
+             L 185 220 
+             Z" 
+          fill="url(#blueDark)" />
+
+    <!-- Blue bottom hook -->
+    <path d="M 100 310 
+             L 170 330 
+             C 195 350, 220 375, 220 405 
+             L 180 440 
+             C 130 440, 100 380, 100 310 Z" 
+          fill="url(#blueGrad2)" />
+
+    <!-- GREEN RIBBON (Forming 'P') -->
+    <!-- Outer curved loop of P -->
+    <path d="M 195 125 
+             C 240 75, 360 80, 400 180 
+             C 435 265, 385 365, 270 375 
+             L 260 325 
+             C 335 320, 365 255, 345 200 
+             C 325 145, 250 140, 205 175 
+             Z" 
+          fill="url(#greenGrad1)" 
+          filter="url(#subtleDrop)" />
+
+    <!-- Green inner fold / stem shadow -->
+    <path d="M 260 325 
+             L 270 375 
+             L 270 470 
+             L 225 470 
+             L 225 350 
+             Z" 
+          fill="url(#greenDark)" />
+
+    <!-- Vertical lower stem of P -->
+    <path d="M 225 350 
+             L 270 325 
+             L 270 470 
+             C 255 475, 240 475, 225 470 
+             Z" 
+          fill="url(#greenGrad2)" />
+
+    <!-- ISOMETRIC 3D PARCEL (Center Core) -->
+    <g transform="translate(255, 175)">
+      <!-- Top Face -->
+      <polygon points="45,0 90,22 45,45 0,22" fill="url(#cubeTopGrad)" />
+      <!-- Left Face -->
+      <polygon points="0,22 45,45 45,95 0,72" fill="url(#cubeLeftGrad)" />
+      <!-- Right Face -->
+      <polygon points="45,45 90,22 90,72 45,95" fill="url(#cubeRightGrad)" />
+      
+      <!-- White Parcel Tape Straps -->
+      <!-- Top Face Tape -->
+      <polygon points="38,4 52,11 38,39 24,32" fill="#FFFFFF" opacity="0.92" />
+      <polygon points="18,13 68,37 60,41 10,17" fill="#FFFFFF" opacity="0.92" />
+      
+      <!-- Left Face Tape Vertical -->
+      <polygon points="18,31 28,36 28,86 18,81" fill="#E2E8F0" opacity="0.88" />
+      <!-- Right Face Tape Vertical -->
+      <polygon points="62,36 72,31 72,81 62,86" fill="#CBD5E1" opacity="0.88" />
+    </g>
+  </g>
+
+  <!-- Typography: Smart Procurement -->
+  <text x="300" y="525" 
+        text-anchor="middle" 
+        font-family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" 
+        font-weight="800" 
+        font-size="42" 
+        letter-spacing="-1">
+    <tspan fill="#0A192F">Smart </tspan>
+    <tspan fill="#008954">Procurement</tspan>
+  </text>
+
+  <!-- Subtitle Tagline -->
+  <text x="300" y="560" 
+        text-anchor="middle" 
+        font-family="'JetBrains Mono', monospace, sans-serif" 
+        font-weight="600" 
+        font-size="14" 
+        letter-spacing="6" 
+        fill="#64748B">
+    SOURCE • SIMPLIFY • SAVE
+  </text>
+</svg>

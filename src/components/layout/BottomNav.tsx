@@ -12,6 +12,8 @@ import {
   BarChart3,
   Award,
   Terminal,
+  ShoppingBag,
+  Info,
 } from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
@@ -29,6 +31,7 @@ export const BottomNav: React.FC = () => {
 
   const navItems = [
     { tab: AppTab.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
+    { tab: AppTab.SHOPPING, label: 'Procure Store', icon: ShoppingBag },
     { tab: AppTab.REQUESTS, label: 'Requisitions', icon: FileSpreadsheet, badge: pendingRequestsCount },
     { tab: AppTab.ORDERS, label: 'Purchase Orders', icon: ClipboardCheck, badge: pendingOrdersCount },
     { tab: AppTab.HISTORY, label: 'Order History', icon: History },
@@ -38,6 +41,7 @@ export const BottomNav: React.FC = () => {
     { tab: AppTab.ANALYTICS, label: 'Analytics & Audit', icon: BarChart3 },
     { tab: AppTab.MEMBERSHIP, label: 'Plans', icon: Award },
     { tab: AppTab.API_CONSOLE, label: 'REST API', icon: Terminal },
+    { tab: AppTab.ABOUT, label: 'About & Founder', icon: Info },
   ];
 
   return (

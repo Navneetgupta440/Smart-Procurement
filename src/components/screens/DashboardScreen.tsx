@@ -13,6 +13,7 @@ import {
   PlusCircle,
   FileSpreadsheet,
   CheckCircle2,
+  ShoppingBag,
 } from 'lucide-react';
 import { OrderStatusBadge, PriorityBadge } from '../common/StatusBadges';
 import {
@@ -116,6 +117,13 @@ export const DashboardScreen: React.FC = () => {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setActiveTab(AppTab.SHOPPING)}
+            className="px-4 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            <span>Procure Store</span>
+          </button>
           <button
             onClick={() => setActiveTab(AppTab.REQUESTS)}
             className="px-4 py-2.5 bg-white text-[#00639A] font-bold text-xs rounded-xl shadow-xs hover:bg-blue-50 transition-all flex items-center gap-1.5"
