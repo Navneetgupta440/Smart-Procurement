@@ -40,7 +40,7 @@ export const BottomNav: React.FC = () => {
     { tab: AppTab.INVENTORY, label: 'Inventory', icon: Boxes, badge: lowStockProducts.length, badgeVariant: 'warning' },
     { tab: AppTab.ANALYTICS, label: 'Analytics & Audit', icon: BarChart3 },
     { tab: AppTab.MEMBERSHIP, label: 'Plans', icon: Award },
-    { tab: AppTab.API_CONSOLE, label: 'REST API', icon: Terminal },
+    { tab: AppTab.API_CONSOLE, label: 'Postman API', icon: Terminal, badge: 55, badgeVariant: 'postman' },
     { tab: AppTab.ABOUT, label: 'About & Founder', icon: Info },
   ];
 
@@ -71,6 +71,8 @@ export const BottomNav: React.FC = () => {
                         ? 'bg-white text-[#00639A]'
                         : item.badgeVariant === 'warning'
                         ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300'
+                        : item.badgeVariant === 'postman'
+                        ? 'bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800'
                         : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'
                     }`}
                   >

@@ -16,6 +16,7 @@ import {
   Sparkles,
   ShoppingBag,
   Info,
+  Terminal,
 } from 'lucide-react';
 import { RoleBadge } from '../common/StatusBadges';
 import { ProcureLogo } from '../common/ProcureLogo';
@@ -98,6 +99,23 @@ export const TopBar: React.FC<TopBarProps> = ({
           >
             <ShoppingBag className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Procure Store</span>
+          </button>
+
+          {/* Postman API Quick Button */}
+          <button
+            onClick={() => setActiveTab(AppTab.API_CONSOLE)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              activeTab === AppTab.API_CONSOLE
+                ? 'bg-orange-600 text-white shadow-xs'
+                : 'bg-orange-50 text-orange-800 dark:bg-orange-950/50 dark:text-orange-300 border border-orange-200 dark:border-orange-900 hover:bg-orange-100'
+            }`}
+            title="Multi-Handler API Postman Collection (55 endpoints)"
+          >
+            <Terminal className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Postman API</span>
+            <span className="font-mono text-[10px] px-1 py-0.2 rounded-full bg-orange-200 dark:bg-orange-900 text-orange-900 dark:text-orange-200">
+              55
+            </span>
           </button>
 
           {/* About Project & Creator Quick Button */}

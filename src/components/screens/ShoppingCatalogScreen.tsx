@@ -37,25 +37,40 @@ interface CartItem {
 
 // Curated high-resolution 16:9 product photography placeholders (800x450, 16:9 ratio)
 export const DEFAULT_PRODUCT_16X9_IMAGES: Record<string, string> = {
-  // IT & Laptops
+  // IT & Laptops & Workstations
   'IT-TP-X1-C11': 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?auto=format&fit=crop&w=900&h=506&q=85',
   'IT-MBP-16-M3': 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&h=506&q=85',
-  // Datacenter & Servers
+  'IT-HP-Z4-G5': 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?auto=format&fit=crop&w=900&h=506&q=85',
+  // Datacenter & Servers & Storage
   'SRV-DL-R760': 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=900&h=506&q=85',
-  // Networking & Switching
+  'NAS-SYN-1821': 'https://images.unsplash.com/photo-1597852074816-d933c4d2b988?auto=format&fit=crop&w=900&h=506&q=85',
+  'SRV-APC-42U': 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=900&h=506&q=85',
+  // Networking, Security & Switching
   'NET-CS-C9300': 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=900&h=506&q=85',
-  // Ergonomic Furniture & Chairs
+  'SEC-FG-100F': 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=900&h=506&q=85',
+  'NET-UBI-UDMSE': 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=900&h=506&q=85',
+  'NET-ARU-6200': 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=900&h=506&q=85',
+  // Ergonomic Furniture & Desks
   'ERG-CH-PRO': 'https://images.unsplash.com/photo-1580481077197-2a62886f4a86?auto=format&fit=crop&w=900&h=506&q=85',
+  'ERG-SC-GEST': 'https://images.unsplash.com/photo-1580481077197-2a62886f4a86?auto=format&fit=crop&w=900&h=506&q=85',
+  'ERG-ERG-TX': 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=900&h=506&q=85',
   // Power & Smart-UPS
   'PWR-APC-3000': 'https://images.unsplash.com/photo-1563770660941-20978e870e26?auto=format&fit=crop&w=900&h=506&q=85',
+  'PWR-VRT-5000': 'https://images.unsplash.com/photo-1563770660941-20978e870e26?auto=format&fit=crop&w=900&h=506&q=85',
+  'PWR-ETN-9PX3K': 'https://images.unsplash.com/photo-1563770660941-20978e870e26?auto=format&fit=crop&w=900&h=506&q=85',
   // Peripherals & Accessories
   'ACC-LOG-MX3S': 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?auto=format&fit=crop&w=900&h=506&q=85',
   // Displays & Monitors
   'DISP-SAM-34C': 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=900&h=506&q=85',
-  // Structured Cabling
+  'DISP-DEL-43U': 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=900&h=506&q=85',
+  // Structured Cabling & Tools
   'CAB-CAT6-305M': 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=900&h=506&q=85',
-  // Audio & Communication
+  'IND-FLK-DSX602': 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=900&h=506&q=85',
+  'IND-BSH-GLL380': 'https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=900&h=506&q=85',
+  // Audio & Video Conference
   'AUD-SNY-WH1000': 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&h=506&q=85',
+  'AUD-PLY-X50': 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&h=506&q=85',
+  'AUD-LOG-RALLY': 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&h=506&q=85',
   // Generic Tech Fallback
   'DEFAULT': 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=900&h=506&q=85',
 };
@@ -83,26 +98,47 @@ export const getProduct16x9Image = (product: Product): string => {
   if (searchStr.includes('macbook') || searchStr.includes('apple') || searchStr.includes('notebook')) {
     return DEFAULT_PRODUCT_16X9_IMAGES['IT-MBP-16-M3'];
   }
+  if (searchStr.includes('workstation') || searchStr.includes('hp z4') || searchStr.includes('cad')) {
+    return DEFAULT_PRODUCT_16X9_IMAGES['IT-HP-Z4-G5'];
+  }
   if (searchStr.includes('server') || searchStr.includes('poweredge') || searchStr.includes('rack') || searchStr.includes('xeon')) {
     return DEFAULT_PRODUCT_16X9_IMAGES['SRV-DL-R760'];
   }
-  if (searchStr.includes('switch') || searchStr.includes('cisco') || searchStr.includes('network') || searchStr.includes('router')) {
+  if (searchStr.includes('nas') || searchStr.includes('synology') || searchStr.includes('diskstation')) {
+    return DEFAULT_PRODUCT_16X9_IMAGES['NAS-SYN-1821'];
+  }
+  if (searchStr.includes('firewall') || searchStr.includes('fortinet') || searchStr.includes('fortigate') || searchStr.includes('security')) {
+    return DEFAULT_PRODUCT_16X9_IMAGES['SEC-FG-100F'];
+  }
+  if (searchStr.includes('switch') || searchStr.includes('cisco') || searchStr.includes('aruba') || searchStr.includes('unifi') || searchStr.includes('network') || searchStr.includes('router')) {
     return DEFAULT_PRODUCT_16X9_IMAGES['NET-CS-C9300'];
   }
-  if (searchStr.includes('chair') || searchStr.includes('ergonomic') || searchStr.includes('desk') || searchStr.includes('furniture')) {
+  if (searchStr.includes('chair') || searchStr.includes('gesture') || searchStr.includes('steelcase') || searchStr.includes('ergonomic')) {
     return DEFAULT_PRODUCT_16X9_IMAGES['ERG-CH-PRO'];
   }
-  if (searchStr.includes('ups') || searchStr.includes('power') || searchStr.includes('battery') || searchStr.includes('apc')) {
+  if (searchStr.includes('standing desk') || searchStr.includes('ergotron') || searchStr.includes('converter')) {
+    return DEFAULT_PRODUCT_16X9_IMAGES['ERG-ERG-TX'];
+  }
+  if (searchStr.includes('ups') || searchStr.includes('power') || searchStr.includes('battery') || searchStr.includes('apc') || searchStr.includes('vertiv') || searchStr.includes('eaton')) {
     return DEFAULT_PRODUCT_16X9_IMAGES['PWR-APC-3000'];
   }
   if (searchStr.includes('mouse') || searchStr.includes('keyboard') || searchStr.includes('logitech') || searchStr.includes('peripheral')) {
     return DEFAULT_PRODUCT_16X9_IMAGES['ACC-LOG-MX3S'];
   }
-  if (searchStr.includes('monitor') || searchStr.includes('display') || searchStr.includes('curved') || searchStr.includes('screen')) {
+  if (searchStr.includes('monitor') || searchStr.includes('display') || searchStr.includes('curved') || searchStr.includes('screen') || searchStr.includes('ultrasharp')) {
     return DEFAULT_PRODUCT_16X9_IMAGES['DISP-SAM-34C'];
   }
   if (searchStr.includes('cable') || searchStr.includes('cat6') || searchStr.includes('utp') || searchStr.includes('wire')) {
     return DEFAULT_PRODUCT_16X9_IMAGES['CAB-CAT6-305M'];
+  }
+  if (searchStr.includes('fluke') || searchStr.includes('cableanalyzer') || searchStr.includes('certifier')) {
+    return DEFAULT_PRODUCT_16X9_IMAGES['IND-FLK-DSX602'];
+  }
+  if (searchStr.includes('laser') || searchStr.includes('bosch') || searchStr.includes('level')) {
+    return DEFAULT_PRODUCT_16X9_IMAGES['IND-BSH-GLL380'];
+  }
+  if (searchStr.includes('video') || searchStr.includes('poly') || searchStr.includes('rally') || searchStr.includes('conference')) {
+    return DEFAULT_PRODUCT_16X9_IMAGES['AUD-PLY-X50'];
   }
   if (searchStr.includes('audio') || searchStr.includes('headphone') || searchStr.includes('sound') || searchStr.includes('sony')) {
     return DEFAULT_PRODUCT_16X9_IMAGES['AUD-SNY-WH1000'];
@@ -122,6 +158,7 @@ export const ShoppingCatalogScreen: React.FC = () => {
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchFilterMode, setSearchFilterMode] = useState<'ALL' | 'NAME' | 'CATEGORY'>('ALL');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'POPULARITY' | 'PRICE_ASC' | 'PRICE_DESC' | 'RATING' | 'DISCOUNT'>('POPULARITY');
   const [viewMode, setViewMode] = useState<'GRID' | 'LIST'>('GRID');
@@ -156,14 +193,36 @@ export const ShoppingCatalogScreen: React.FC = () => {
     return Array.from(set);
   }, [products]);
 
-  // Filtered & Sorted Products
+  // Filtered & Sorted Products with Real-Time Name & Category Matching
   const filteredProducts = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
     let list = products.filter((p) => {
-      const matchesSearch =
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.productCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (p.brand && p.brand.toLowerCase().includes(searchQuery.toLowerCase()));
+      let matchesSearch = true;
+
+      if (query) {
+        const matchesName = p.name.toLowerCase().includes(query);
+        const matchesCategoryName = (p.categoryName || '').toLowerCase().includes(query);
+        const matchesCategoryId = (p.categoryId || '').toLowerCase().includes(query);
+        const matchesBrand = (p.brand || '').toLowerCase().includes(query);
+        const matchesCode = (p.productCode || '').toLowerCase().includes(query);
+        const matchesDescription = (p.description || '').toLowerCase().includes(query);
+
+        if (searchFilterMode === 'NAME') {
+          matchesSearch = matchesName || matchesBrand || matchesCode;
+        } else if (searchFilterMode === 'CATEGORY') {
+          matchesSearch = matchesCategoryName || matchesCategoryId;
+        } else {
+          // 'ALL': Real-time filter by product name OR category (also checking brand, specs & code)
+          matchesSearch =
+            matchesName ||
+            matchesCategoryName ||
+            matchesCategoryId ||
+            matchesBrand ||
+            matchesCode ||
+            matchesDescription;
+        }
+      }
 
       const matchesCategory = selectedCategory === 'ALL' || p.categoryName === selectedCategory;
       const matchesBrand = selectedBrand === 'ALL' || p.brand === selectedBrand;
@@ -184,7 +243,7 @@ export const ShoppingCatalogScreen: React.FC = () => {
       default:
         return list.sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
     }
-  }, [products, searchQuery, selectedCategory, selectedBrand, sortBy]);
+  }, [products, searchQuery, searchFilterMode, selectedCategory, selectedBrand, sortBy]);
 
   // Cart operations
   const addToCart = (product: Product, quantity = 1) => {
@@ -339,36 +398,89 @@ export const ShoppingCatalogScreen: React.FC = () => {
       </div>
 
       {/* Search, Filter & Sort Bar */}
-      <div className="bg-white dark:bg-[#191C20] rounded-2xl p-4 border border-[#121212]/10 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* Search Input */}
-        <div className="relative w-full md:w-96">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Search products, brands, specs, model codes..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl text-xs sm:text-sm bg-[#F9F7F2] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+      <div className="bg-white dark:bg-[#191C20] rounded-2xl p-4 sm:p-5 border border-[#121212]/10 dark:border-slate-800 shadow-xs space-y-3.5">
+        {/* Main Row: Real-Time Search input + Filter Target Mode + Brand + Sort + View */}
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+          {/* Primary Real-Time Search Bar */}
+          <div className="relative flex-1 flex items-center">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder={
+                searchFilterMode === 'NAME'
+                  ? 'Filter by product name in real-time (e.g. ThinkPad, MacBook, FortiGate, UPS)...'
+                  : searchFilterMode === 'CATEGORY'
+                  ? 'Filter by category in real-time (e.g. Networking, IT, Office, Power, Tools)...'
+                  : 'Filter products by name or category in real-time...'
+              }
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-24 py-2.5 rounded-xl text-xs sm:text-sm bg-[#F9F7F2] dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 font-medium"
+            />
+            {/* Live Indicator / Clear Button */}
+            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+              {searchQuery ? (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                  title="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              ) : (
+                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md font-semibold border border-emerald-200/50 dark:border-emerald-800/40">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live Filter
+                </span>
+              )}
+            </div>
+          </div>
 
-        {/* Brand & Sort Filters */}
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-          {/* Brand Filter */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-slate-500 font-medium">Brand:</span>
+          {/* Real-Time Filter Target Selector */}
+          <div className="flex items-center bg-[#F9F7F2] dark:bg-slate-800/90 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold self-start lg:self-auto">
+            <span className="text-[11px] text-slate-400 px-2 hidden xl:inline">Filter By:</span>
+            <button
+              onClick={() => setSearchFilterMode('ALL')}
+              className={`px-2.5 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
+                searchFilterMode === 'ALL'
+                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              }`}
+              title="Filter by both name and category"
+            >
+              Name & Category
+            </button>
+            <button
+              onClick={() => setSearchFilterMode('NAME')}
+              className={`px-2.5 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
+                searchFilterMode === 'NAME'
+                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              }`}
+              title="Filter only by product name"
+            >
+              Name Only
+            </button>
+            <button
+              onClick={() => setSearchFilterMode('CATEGORY')}
+              className={`px-2.5 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
+                searchFilterMode === 'CATEGORY'
+                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              }`}
+              title="Filter only by category"
+            >
+              Category Only
+            </button>
+          </div>
+
+          {/* Brand & Sort Filters & View Mode */}
+          <div className="flex flex-wrap items-center gap-2.5 justify-between lg:justify-end">
+            {/* Brand Filter */}
             <select
               value={selectedBrand}
               onChange={(e) => setSelectedBrand(e.target.value)}
-              className="text-xs px-3 py-2 rounded-xl bg-[#F9F7F2] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-medium"
+              className="text-xs px-3 py-2 rounded-xl bg-[#F9F7F2] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="ALL">All Brands</option>
               {brands.map((b) => (
@@ -377,15 +489,12 @@ export const ShoppingCatalogScreen: React.FC = () => {
                 </option>
               ))}
             </select>
-          </div>
 
-          {/* Sort By */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-slate-500 font-medium">Sort By:</span>
+            {/* Sort By */}
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="text-xs px-3 py-2 rounded-xl bg-[#F9F7F2] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-medium"
+              className="text-xs px-3 py-2 rounded-xl bg-[#F9F7F2] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="POPULARITY">Popularity / Ratings</option>
               <option value="PRICE_ASC">Price: Low to High</option>
@@ -393,33 +502,103 @@ export const ShoppingCatalogScreen: React.FC = () => {
               <option value="RATING">Highest Rated</option>
               <option value="DISCOUNT">Discount %</option>
             </select>
-          </div>
 
-          {/* View Mode Toggle */}
-          <div className="flex items-center bg-[#F9F7F2] dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
-            <button
-              onClick={() => setViewMode('GRID')}
-              className={`p-1.5 rounded-lg text-xs transition-colors ${
-                viewMode === 'GRID'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-              title="Grid View"
-            >
-              <Grid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('LIST')}
-              className={`p-1.5 rounded-lg text-xs transition-colors ${
-                viewMode === 'LIST'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-              title="List View"
-            >
-              <List className="w-4 h-4" />
-            </button>
+            {/* View Mode Toggle */}
+            <div className="flex items-center bg-[#F9F7F2] dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+              <button
+                onClick={() => setViewMode('GRID')}
+                className={`p-1.5 rounded-lg text-xs transition-colors ${
+                  viewMode === 'GRID'
+                    ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+                title="Grid View"
+              >
+                <Grid className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('LIST')}
+                className={`p-1.5 rounded-lg text-xs transition-colors ${
+                  viewMode === 'LIST'
+                    ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+                title="List View"
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
           </div>
+        </div>
+
+        {/* Quick Clickable Suggestions / Popular Filter Chips */}
+        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1 text-[11px]">
+            <Tag className="w-3 h-3" /> Real-Time Suggestions:
+          </span>
+
+          {/* Category Suggestions */}
+          {categories.slice(0, 4).map((cat) => (
+            <button
+              key={cat}
+              onClick={() => {
+                setSearchFilterMode('CATEGORY');
+                setSearchQuery(cat);
+              }}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${
+                searchQuery === cat && searchFilterMode === 'CATEGORY'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60'
+              }`}
+            >
+              Category: {cat}
+            </button>
+          ))}
+
+          {/* Product Name Suggestions */}
+          {['ThinkPad', 'FortiGate', 'MacBook', 'PowerEdge', 'Smart-UPS', 'Fluke'].map((name) => (
+            <button
+              key={name}
+              onClick={() => {
+                setSearchFilterMode('NAME');
+                setSearchQuery(name);
+              }}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${
+                searchQuery === name && searchFilterMode === 'NAME'
+                  ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900 shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              Name: {name}
+            </button>
+          ))}
+
+          {(searchQuery || selectedCategory !== 'ALL' || selectedBrand !== 'ALL') && (
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setSearchFilterMode('ALL');
+                setSelectedCategory('ALL');
+                setSelectedBrand('ALL');
+              }}
+              className="ml-auto text-[11px] font-semibold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1 py-1"
+            >
+              <X className="w-3 h-3" /> Reset Filters
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Results Status Indicator Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-slate-500">
+        <div>
+          Showing <span className="font-bold text-slate-800 dark:text-slate-200">{filteredProducts.length}</span> of{' '}
+          <span className="font-bold text-slate-800 dark:text-slate-200">{products.length}</span> products in catalog
+          {searchQuery && (
+            <span className="ml-2 inline-flex items-center gap-1 font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md border border-blue-200/50 dark:border-blue-900/50">
+              Live filtered by {searchFilterMode === 'CATEGORY' ? 'category' : searchFilterMode === 'NAME' ? 'product name' : 'name or category'}: &ldquo;{searchQuery}&rdquo;
+            </span>
+          )}
         </div>
       </div>
 
@@ -733,6 +912,53 @@ export const ShoppingCatalogScreen: React.FC = () => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Empty State when no products match real-time query */}
+      {filteredProducts.length === 0 && (
+        <div className="bg-white dark:bg-[#191C20] rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-10 sm:p-14 text-center space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-200/60 dark:border-blue-800/50">
+            <Search className="w-8 h-8" />
+          </div>
+          <div className="space-y-1.5 max-w-md mx-auto">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+              No products found {searchQuery ? `matching "${searchQuery}"` : ''}
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+              We couldn&apos;t find any enterprise items matching your real-time search for{' '}
+              <span className="font-semibold text-slate-700 dark:text-slate-300">
+                {searchFilterMode === 'CATEGORY'
+                  ? 'categories'
+                  : searchFilterMode === 'NAME'
+                  ? 'product names'
+                  : 'names or categories'}
+              </span>
+              . Try searching by another product name or category, or clear your filters.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-xs"
+              >
+                Clear Search Query
+              </button>
+            )}
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setSearchFilterMode('ALL');
+                setSelectedCategory('ALL');
+                setSelectedBrand('ALL');
+              }}
+              className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            >
+              Reset All Filters (View All {products.length} Products)
+            </button>
+          </div>
         </div>
       )}
 

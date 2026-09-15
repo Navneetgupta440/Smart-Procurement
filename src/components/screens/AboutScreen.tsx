@@ -29,6 +29,7 @@ import {
   Building2,
   Calendar,
   Zap,
+  Download,
 } from 'lucide-react';
 
 export const AboutScreen: React.FC = () => {
@@ -305,6 +306,60 @@ export const AboutScreen: React.FC = () => {
                   <li>Deterministic SHA-256 digital signatures</li>
                 </ul>
               </div>
+            </div>
+          </div>
+
+          {/* Attached Multi-Handler API Postman Collection Showcase */}
+          <div className="bg-white dark:bg-[#191C20] rounded-2xl p-6 sm:p-8 border border-orange-200 dark:border-orange-950/60 shadow-xs space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
+                  <Terminal className="w-4 h-4" />
+                  <span>Attached REST API Specification</span>
+                </div>
+                <h2 className="text-2xl font-serif font-bold text-slate-900 dark:text-slate-100 mt-1">
+                  Multi-Handler API Postman Collection (v2.1.0)
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+                  Full enterprise collection attached with 55 endpoints across 7 modules, pre-configured with test scripts and environment variables.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                <a
+                  href="/postman_collection.json"
+                  download="multi-handler-api.postman_collection.json"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-xs transition-all"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download Collection (.json)</span>
+                </a>
+
+                <button
+                  onClick={() => setActiveTab(AppTab.API_CONSOLE)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 font-bold text-xs shadow-xs transition-all"
+                >
+                  <span>Launch Live API Console</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+              {[
+                { name: 'Auth & User', count: '7 APIs', color: 'emerald' },
+                { name: 'Admin RBAC', count: '8 APIs', color: 'purple' },
+                { name: 'Requests', count: '7 APIs', color: 'blue' },
+                { name: 'Payments', count: '6 APIs', color: 'amber' },
+                { name: 'Shop & Orders', count: '12 APIs', color: 'teal' },
+                { name: 'Storage Vault', count: '6 APIs', color: 'indigo' },
+                { name: 'Approvals', count: '9 APIs', color: 'rose' },
+              ].map((m, idx) => (
+                <div key={idx} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-center space-y-1">
+                  <div className="text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate">{m.name}</div>
+                  <div className="text-[10px] font-mono text-orange-600 dark:text-orange-400 font-semibold">{m.count}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
