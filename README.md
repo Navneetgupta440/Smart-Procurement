@@ -96,75 +96,75 @@
 
 | Layer | Technology |
 |---|---|
-| **Language** | Kotlin 1.9+ |
-| **UI Framework** | Jetpack Compose (Material 3) |
-| **Architecture** | MVVM (Model-View-ViewModel) + Repository Pattern |
-| **Local Database** | Room Database (SQLite) with KSP |
-| **State Management** | Kotlin Coroutines & `StateFlow` / `collectAsStateWithLifecycle` |
-| **Persistence / Prefs** | AndroidX DataStore Preferences |
-| **Design System** | Material 3 Color Schemes, Bento Cards, Dynamic Elevation |
+| **Language** | TypeScript 5.7+ |
+| **UI Framework** | React 18+ with Vite 6 |
+| **Styling** | Tailwind CSS v4 with Bento Card design tokens |
+| **Icons & UI** | Lucide React |
+| **Motion** | Motion (Framer Motion) layout & transition engine |
+| **Charts & Metrics** | Recharts (Spend trends, category breakdowns, SLA comparisons) |
+| **State Management** | React Context + LocalStorage Persistence (`ProcurementContext`) |
+| **Workflow Engine** | `PoApprovalWorkflowEngine` multi-tier approval matrix |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-app/src/main/java/com/example/
-├── MainActivity.kt                      # Main App Entry & Scaffolding
+src/
+├── App.tsx                          # App Shell, Routing, Modals & Toast Manager
+├── main.tsx                         # React Client Entry Point
+├── index.css                        # Tailwind CSS imports & custom styling
+├── types/
+│   └── procurement.ts               # Complete TypeScript domain interfaces & enums
 ├── data/
-│   ├── db/
-│   │   ├── AppDatabase.kt               # Room Database & Converters
-│   │   └── SeedData.kt                  # Seed Data for Initial Launch
-│   ├── entity/
-│   │   └── Entities.kt                  # User, Request, PO, Item, Inventory, Supplier, Audit Entities
-│   ├── dao/
-│   │   └── Daos.kt                      # Type-safe Room DAOs with Flow queries
-│   ├── model/
-│   │   └── Models.kt                    # Enums, Data classes, Statuses, Tiers & Plans
-│   ├── preferences/
-│   │   └── UserPreferencesRepository.kt # DataStore for Theme & Session
-│   ├── repository/
-│   │   └── ProcurementRepository.kt     # Unified Data Orchestrator & Business Logic
-│   └── workflow/
-│       └── PoApprovalWorkflowEngine.kt  # Multi-tier Hierarchical Approval Matrix Engine
-├── ui/
-│   ├── components/
-│   │   ├── CommonComponents.kt          # TopBar, Navigation, KPI Bento Cards, Status Badges
-│   │   ├── AuthDialog.kt                # Login, Registration & User Switcher Modal
-│   │   ├── PoFilterBar.kt               # Advanced Filters, Sorters & Date Presets
-│   │   ├── PoHierarchicalApprovalView.kt# Multi-tier visual approval steps & actions
-│   │   └── PurchaseOrderStatusTracker.kt# Step-by-step milestone delivery stepper
-│   ├── screens/
-│   │   ├── DashboardScreen.kt           # Executive KPI Bento Dashboard & Fast Actions
-│   │   ├── RequestsScreen.kt            # Purchase Requisitions & Creation Forms
-│   │   ├── PurchaseOrdersScreen.kt      # PO Management, Approvals & Lifecycle
-│   │   ├── OrderHistoryScreen.kt        # Complete History, Invoices & Vendor Rating
-│   │   ├── SuppliersScreen.kt           # Vendor Database, SLA Scorecards & RFQ
-│   │   ├── DeliveryScreen.kt            # Live Shipments, Waybills & QR Goods Receipt
-│   │   ├── InventoryScreen.kt           # Stock Ledger, Safety Stock & Auto-Reorder
-│   │   └── MembershipPlanScreen.kt      # SaaS Subscription Upgrade & Tier Breakdown
-│   ├── theme/
-│   │   ├── Color.kt                     # Modern Material 3 Color Palette
-│   │   ├── Theme.kt                     # Dynamic Dark/Light Theme Provider
-│   │   └── Type.kt                      # Typography Specs
-│   └── viewmodel/
-│       └── ProcurementViewModel.kt      # Central State Holder & Coroutine Dispatcher
+│   └── seedData.ts                  # Enterprise initial datasets (products, suppliers, users)
+├── services/
+│   └── workflowEngine.ts            # 4-tier approval matrix, limits & crypto hash certs
+├── context/
+│   └── ProcurementContext.tsx       # Central state orchestrator, persistent storage & actions
+└── components/
+    ├── common/
+    │   ├── StatusBadges.tsx         # Role, Status, Priority & Delivery badges
+    │   ├── PoHierarchicalApprovalView.tsx # Visual approval progress & signoff actions
+    │   ├── PurchaseOrderStatusTracker.tsx # Milestone stepper (Dispatched -> Delivered)
+    │   └── PoFilterBar.tsx          # Search & status filtering controls
+    ├── layout/
+    │   ├── TopBar.tsx               # Header, persona switcher, notifications, theme toggle
+    │   ├── BottomNav.tsx            # Tab navigation for all 10 core screens
+    │   └── HighValueAlertBanner.tsx # Dynamic alert banner for high-value purchases
+    ├── modals/
+    │   ├── AuthDialog.tsx           # Persona selection, login & registration modal
+    │   ├── NewRequisitionModal.tsx  # Dynamic multi-item purchase requisition modal
+    │   └── NotificationsModal.tsx   # Enterprise notification center
+    └── screens/
+        ├── DashboardScreen.tsx      # Bento KPI dashboard, spend charts & quick actions
+        ├── PurchaseRequestsScreen.tsx # PR management, approval signoffs & PO conversion
+        ├── PurchaseOrdersScreen.tsx # PO list, hierarchical approvals & dispatch modal
+        ├── OrderHistoryScreen.tsx   # Historical orders, search & invoice details
+        ├── SuppliersScreen.tsx      # Vendor scorecard, SLA rankings & RFQ recommendation
+        ├── DeliveryTrackingScreen.tsx # Live BlueDart/FedEx tracking & dock checkpoints
+        ├── InventoryScreen.tsx      # Stock ledger, safety thresholds & auto-replenishment
+        ├── AnalyticsAuditScreen.tsx # Multi-metric spend analytics & immutable audit log
+        ├── MembershipScreen.tsx     # Enterprise subscription plans & feature matrix
+        └── ApiConsoleScreen.tsx     # REST simulator, threshold config & lifecycle test
 ```
 
 ---
 
 ## ⚙️ Build & Run
 
-1. Open project in **Android Studio** (Hedgehog or newer recommended).
-2. Ensure **JDK 17+** is configured.
-3. Sync Gradle project dependencies.
-4. Run the app:
+1. Ensure **Node.js 18+** is installed.
+2. Install dependencies:
    ```bash
-   ./gradlew installDebug
+   npm install
    ```
-5. Run unit & Robolectric tests:
+3. Start the development server:
    ```bash
-   ./gradlew testDebugUnitTest
+   npm run dev
+   ```
+4. Build for production:
+   ```bash
+   npm run build
    ```
 
 ---
