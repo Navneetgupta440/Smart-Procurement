@@ -11,8 +11,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script>
+      (function() {
+        try {
+          var savedTheme = localStorage.getItem('sp_theme_v2');
+          if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
-  <body class="bg-[#F9F7F2] text-[#121212] antialiased selection:bg-[#F4F0E8] selection:text-[#121212]">
+  <body class="bg-[#F9F7F2] dark:bg-[#111317] text-[#121212] dark:text-[#E2E2E6] antialiased selection:bg-[#F4F0E8] selection:text-[#121212]">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

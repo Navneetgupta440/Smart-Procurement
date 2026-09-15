@@ -20,6 +20,7 @@ import { MembershipScreen } from './components/screens/MembershipScreen';
 import { ApiConsoleScreen } from './components/screens/ApiConsoleScreen';
 import { ShoppingCatalogScreen } from './components/screens/ShoppingCatalogScreen';
 import { AboutScreen } from './components/screens/AboutScreen';
+import { PostmanSecurityModal } from './components/common/PostmanSecurityModal';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
@@ -29,6 +30,8 @@ const MainLayout: React.FC = () => {
     setShowNotificationsModal,
     showAuthDialog,
     setShowAuthDialog,
+    showPostmanSecurityModal,
+    setShowPostmanSecurityModal,
     toasts,
     removeToast,
   } = useProcurement();
@@ -117,6 +120,14 @@ const MainLayout: React.FC = () => {
       {/* User Persona & Profile Switcher Modal */}
       {showAuthDialog && (
         <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
+      )}
+
+      {/* Postman API File Access & Download Security Authentication Modal */}
+      {showPostmanSecurityModal && (
+        <PostmanSecurityModal
+          isOpen={showPostmanSecurityModal}
+          onClose={() => setShowPostmanSecurityModal(false)}
+        />
       )}
 
       {/* Floating System Toasts */}

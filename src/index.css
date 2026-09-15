@@ -13,6 +13,11 @@
     color: #121212;
   }
 
+  html.dark body {
+    background-color: #111317;
+    color: #E2E2E6;
+  }
+
   h1, h2, h3, .font-serif {
     font-family: var(--font-serif);
   }

@@ -80,6 +80,19 @@ interface ProcurementContextType {
   demoLifecycleStep: number;
   toasts: Toast[];
 
+  // Wishlist
+  wishlistProductIds: string[];
+  addToWishlist: (productOrId: Product | string) => void;
+  removeFromWishlist: (productId: string) => void;
+  toggleWishlist: (productOrId: Product | string) => void;
+  isInWishlist: (productId: string) => boolean;
+  clearWishlist: () => void;
+
+  // Postman API Security Modal State
+  showPostmanSecurityModal: boolean;
+  setShowPostmanSecurityModal: (show: boolean) => void;
+  openPostmanSecurityModal: () => void;
+
   // Aliases & Modal States
   requests: PurchaseRequest[];
   orders: PurchaseOrder[];
@@ -211,6 +224,7 @@ const STORAGE_KEYS = {
   RATINGS: 'sp_ratings_v2',
   SETTINGS: 'sp_settings_v2',
   THEME: 'sp_theme_v2',
+  WISHLIST: 'sp_wishlist_v2',
 };
 
 export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -333,8 +347,16 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const [activeTab, setActiveTab] = useState<AppTab>(AppTab.DASHBOARD);
   const [themeMode, setThemeModeState] = useState<'light' | 'dark'>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.THEME);
-    return saved === 'dark' ? 'dark' : 'light';
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.THEME);
+      if (saved === 'dark' || saved === 'light') return saved;
+      if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
+    } catch {
+      // fallback
+    }
+    return 'light';
   });
 
   const [highValueAlert, setHighValueAlert] = useState<HighValueOrderAlert | null>(null);
@@ -343,8 +365,26 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [showNewRequisitionModal, setShowNewRequisitionModal] = useState(false);
+  const [showPostmanSecurityModal, setShowPostmanSecurityModal] = useState(false);
+
+  // Wishlist state (persisted across sessions)
+  const [wishlistProductIds, setWishlistProductIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.WISHLIST);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
 
   // Sync to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.WISHLIST, JSON.stringify(wishlistProductIds));
+  }, [wishlistProductIds]);
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
   }, [users]);
@@ -382,7 +422,11 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
   }, [settings]);
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.THEME, themeMode);
+    try {
+      localStorage.setItem(STORAGE_KEYS.THEME, themeMode);
+    } catch {
+      // ignore
+    }
     if (themeMode === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -442,10 +486,35 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const setThemeMode = (mode: 'light' | 'dark') => {
     setThemeModeState(mode);
+    try {
+      localStorage.setItem(STORAGE_KEYS.THEME, mode);
+    } catch {
+      // ignore
+    }
+    if (mode === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    addToast('info', `${mode === 'dark' ? 'Dark' : 'Light'} Mode Enabled`, `Theme preference saved as ${mode} mode`);
   };
 
   const toggleTheme = () => {
-    setThemeModeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    setThemeModeState((prev) => {
+      const nextMode = prev === 'dark' ? 'light' : 'dark';
+      try {
+        localStorage.setItem(STORAGE_KEYS.THEME, nextMode);
+      } catch {
+        // ignore
+      }
+      if (nextMode === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      addToast('info', `${nextMode === 'dark' ? 'Dark' : 'Light'} Mode Enabled`, `System switched to ${nextMode} mode`);
+      return nextMode;
+    });
   };
 
   // Internal log audit helper
@@ -619,6 +688,49 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
       NotificationEventType.SYSTEM
     );
     addToast('success', 'Plan Upgraded', `Successfully activated ${plan} tier!`);
+  };
+
+  // Wishlist operations
+  const addToWishlist = (productOrId: Product | string) => {
+    const id = typeof productOrId === 'string' ? productOrId : productOrId.id;
+    const targetProduct = typeof productOrId === 'string' ? products.find((p) => p.id === id) : productOrId;
+    setWishlistProductIds((prev) => {
+      if (prev.includes(id)) return prev;
+      return [...prev, id];
+    });
+    addToast(
+      'success',
+      'Added to Wishlist',
+      targetProduct ? `${targetProduct.name} bookmarked for future procurement` : 'Item bookmarked for future procurement'
+    );
+  };
+
+  const removeFromWishlist = (productId: string) => {
+    const targetProduct = products.find((p) => p.id === productId);
+    setWishlistProductIds((prev) => prev.filter((id) => id !== productId));
+    addToast('info', 'Removed from Wishlist', targetProduct ? `${targetProduct.name} removed from wishlist` : 'Item removed from wishlist');
+  };
+
+  const toggleWishlist = (productOrId: Product | string) => {
+    const id = typeof productOrId === 'string' ? productOrId : productOrId.id;
+    if (wishlistProductIds.includes(id)) {
+      removeFromWishlist(id);
+    } else {
+      addToWishlist(productOrId);
+    }
+  };
+
+  const isInWishlist = (productId: string) => {
+    return wishlistProductIds.includes(productId);
+  };
+
+  const clearWishlist = () => {
+    setWishlistProductIds([]);
+    addToast('info', 'Wishlist Cleared', 'All bookmarked items cleared');
+  };
+
+  const openPostmanSecurityModal = () => {
+    setShowPostmanSecurityModal(true);
   };
 
   // Purchase Request operations
@@ -1820,7 +1932,13 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const resetAllData = () => {
+    const savedTheme = themeMode;
     localStorage.clear();
+    try {
+      localStorage.setItem(STORAGE_KEYS.THEME, savedTheme);
+    } catch {
+      // ignore
+    }
     setUsers(INITIAL_USERS);
     setCurrentUserId('usr-admin');
     setProducts(INITIAL_PRODUCTS);
@@ -1833,6 +1951,7 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setAuditLogs(INITIAL_AUDIT_LOGS);
     setRatings(INITIAL_RATINGS);
     setSettings(INITIAL_SETTINGS);
+    setWishlistProductIds([]);
     setDemoLifecycleStep(1);
     addToast('info', 'Data Reset', 'All records reset to initial seeds');
   };
@@ -1861,6 +1980,15 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
         highValueAlert,
         demoLifecycleStep,
         toasts,
+        wishlistProductIds,
+        addToWishlist,
+        removeFromWishlist,
+        toggleWishlist,
+        isInWishlist,
+        clearWishlist,
+        showPostmanSecurityModal,
+        setShowPostmanSecurityModal,
+        openPostmanSecurityModal,
         requests,
         orders,
         deliveries,

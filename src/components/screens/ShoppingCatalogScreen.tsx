@@ -28,6 +28,9 @@ import {
   FileSpreadsheet,
   AlertTriangle,
   Eye,
+  Heart,
+  HeartOff,
+  Trash2,
 } from 'lucide-react';
 
 interface CartItem {
@@ -154,6 +157,10 @@ export const ShoppingCatalogScreen: React.FC = () => {
     createPurchaseRequest,
     setActiveTab,
     suppliers,
+    wishlistProductIds,
+    toggleWishlist,
+    isInWishlist,
+    clearWishlist,
   } = useProcurement();
 
   // Search & Filter State
@@ -163,6 +170,7 @@ export const ShoppingCatalogScreen: React.FC = () => {
   const [sortBy, setSortBy] = useState<'POPULARITY' | 'PRICE_ASC' | 'PRICE_DESC' | 'RATING' | 'DISCOUNT'>('POPULARITY');
   const [viewMode, setViewMode] = useState<'GRID' | 'LIST'>('GRID');
   const [selectedBrand, setSelectedBrand] = useState<string>('ALL');
+  const [showWishlistOnly, setShowWishlistOnly] = useState<boolean>(false);
 
   // Shopping Cart / Requisition Cart State
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -226,8 +234,9 @@ export const ShoppingCatalogScreen: React.FC = () => {
 
       const matchesCategory = selectedCategory === 'ALL' || p.categoryName === selectedCategory;
       const matchesBrand = selectedBrand === 'ALL' || p.brand === selectedBrand;
+      const matchesWishlist = !showWishlistOnly || wishlistProductIds.includes(p.id);
 
-      return matchesSearch && matchesCategory && matchesBrand;
+      return matchesSearch && matchesCategory && matchesBrand && matchesWishlist;
     });
 
     switch (sortBy) {
@@ -243,7 +252,7 @@ export const ShoppingCatalogScreen: React.FC = () => {
       default:
         return list.sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
     }
-  }, [products, searchQuery, searchFilterMode, selectedCategory, selectedBrand, sortBy]);
+  }, [products, searchQuery, searchFilterMode, selectedCategory, selectedBrand, sortBy, showWishlistOnly, wishlistProductIds]);
 
   // Cart operations
   const addToCart = (product: Product, quantity = 1) => {
@@ -342,8 +351,33 @@ export const ShoppingCatalogScreen: React.FC = () => {
             </p>
           </div>
 
-          {/* Cart Floating / Sticky Trigger */}
-          <div className="flex items-center gap-3">
+          {/* Wishlist & Cart Floating / Sticky Triggers */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Wishlist Bookmark Counter Button */}
+            <button
+              id="shopping-wishlist-toggle-btn"
+              onClick={() => setShowWishlistOnly(!showWishlistOnly)}
+              className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl font-bold text-sm shadow-md transition-all active:scale-95 ${
+                showWishlistOnly
+                  ? 'bg-rose-500 text-white ring-2 ring-white/50 shadow-rose-900/30'
+                  : 'bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-md'
+              }`}
+              title="Filter items bookmarked in your Wishlist for later procurement"
+            >
+              <div className="relative">
+                <Heart className={`w-5 h-5 ${wishlistProductIds.length > 0 ? 'fill-rose-400 text-rose-400' : 'text-white'}`} />
+                {wishlistProductIds.length > 0 && (
+                  <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-rose-600 text-white text-[10px] font-mono flex items-center justify-center font-bold">
+                    {wishlistProductIds.length}
+                  </span>
+                )}
+              </div>
+              <div className="text-left hidden sm:block">
+                <div className="text-[10px] font-mono uppercase tracking-wider text-rose-100">Wishlist</div>
+                <div className="text-xs font-semibold">{wishlistProductIds.length} Bookmarked</div>
+              </div>
+            </button>
+
             <button
               onClick={() => setShowCartDrawer(true)}
               className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold text-sm shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
@@ -573,13 +607,14 @@ export const ShoppingCatalogScreen: React.FC = () => {
             </button>
           ))}
 
-          {(searchQuery || selectedCategory !== 'ALL' || selectedBrand !== 'ALL') && (
+          {(searchQuery || selectedCategory !== 'ALL' || selectedBrand !== 'ALL' || showWishlistOnly) && (
             <button
               onClick={() => {
                 setSearchQuery('');
                 setSearchFilterMode('ALL');
                 setSelectedCategory('ALL');
                 setSelectedBrand('ALL');
+                setShowWishlistOnly(false);
               }}
               className="ml-auto text-[11px] font-semibold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1 py-1"
             >
@@ -591,32 +626,73 @@ export const ShoppingCatalogScreen: React.FC = () => {
 
       {/* Results Status Indicator Bar */}
       <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-slate-500">
-        <div>
-          Showing <span className="font-bold text-slate-800 dark:text-slate-200">{filteredProducts.length}</span> of{' '}
-          <span className="font-bold text-slate-800 dark:text-slate-200">{products.length}</span> products in catalog
+        <div className="flex flex-wrap items-center gap-2">
+          <span>
+            Showing <span className="font-bold text-slate-800 dark:text-slate-200">{filteredProducts.length}</span> of{' '}
+            <span className="font-bold text-slate-800 dark:text-slate-200">{products.length}</span> products in catalog
+          </span>
+          {showWishlistOnly && (
+            <span className="inline-flex items-center gap-1 font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-md border border-rose-200/50 dark:border-rose-900/50">
+              <Heart className="w-3 h-3 fill-rose-500 text-rose-500" />
+              Showing Wishlisted Items Only ({filteredProducts.length})
+              <button
+                onClick={() => setShowWishlistOnly(false)}
+                className="ml-1 hover:text-rose-800 dark:hover:text-rose-200"
+                title="Show all items"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
           {searchQuery && (
-            <span className="ml-2 inline-flex items-center gap-1 font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md border border-blue-200/50 dark:border-blue-900/50">
+            <span className="inline-flex items-center gap-1 font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md border border-blue-200/50 dark:border-blue-900/50">
               Live filtered by {searchFilterMode === 'CATEGORY' ? 'category' : searchFilterMode === 'NAME' ? 'product name' : 'name or category'}: &ldquo;{searchQuery}&rdquo;
             </span>
           )}
         </div>
+        {wishlistProductIds.length > 0 && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowWishlistOnly(!showWishlistOnly)}
+              className={`text-xs font-semibold px-2.5 py-1 rounded-lg border transition-colors flex items-center gap-1.5 ${
+                showWishlistOnly
+                  ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <Heart className={`w-3.5 h-3.5 ${showWishlistOnly ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`} />
+              <span>{showWishlistOnly ? 'View All Catalog' : `View Wishlist (${wishlistProductIds.length})`}</span>
+            </button>
+            {showWishlistOnly && (
+              <button
+                onClick={clearWishlist}
+                className="text-[11px] text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 flex items-center gap-1 px-2 py-1"
+                title="Clear all items from wishlist"
+              >
+                <Trash2 className="w-3 h-3" />
+                <span>Clear Wishlist</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Product Grid View (Procure Cards) */}
       {viewMode === 'GRID' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 sm:gap-6">
           {filteredProducts.map((product) => {
             const inCart = cart.find((item) => item.product.id === product.id);
             const supplier = suppliers.find((s) => s.id === product.supplierId);
             const productPhotoUrl = getProduct16x9Image(product);
+            const isWishlisted = isInWishlist(product.id);
 
             return (
               <div
                 key={product.id}
-                className="bg-white dark:bg-[#191C20] rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-xl hover:border-blue-500/40 dark:hover:border-blue-500/30 hover:-translate-y-1.5 transition-all duration-300 flex flex-col overflow-hidden group"
+                className="bg-white dark:bg-[#191C20] rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md hover:border-blue-500/40 dark:hover:border-blue-500/30 hover:-translate-y-1 transition-all duration-300 ease-in-out flex flex-col overflow-hidden group"
               >
                 {/* 16:9 Product Photo Container above details */}
-                <div className="relative w-full aspect-[16/9] overflow-hidden bg-slate-100 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                <div className="relative w-full aspect-[16/9] overflow-hidden bg-slate-100 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shrink-0">
                   <img
                     src={productPhotoUrl}
                     alt={product.name}
@@ -634,20 +710,45 @@ export const ShoppingCatalogScreen: React.FC = () => {
                   {/* Subtle catalogue vignette on hover */}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-                  {/* Discount Badge */}
-                  {product.discountPercent && (
-                    <div className="absolute top-2.5 left-2.5 bg-emerald-600/95 text-white text-[11px] font-bold px-2 py-0.5 rounded-md shadow-xs backdrop-blur-xs tracking-wide">
-                      {product.discountPercent}% OFF
-                    </div>
-                  )}
+                  {/* Top Left Badges: Discount Badge */}
+                  <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10">
+                    {product.discountPercent && (
+                      <div className="bg-emerald-600/95 text-white text-[11px] font-bold px-2 py-0.5 rounded-md shadow-xs backdrop-blur-xs tracking-wide">
+                        {product.discountPercent}% OFF
+                      </div>
+                    )}
+                  </div>
 
-                  {/* Procure Assured Badge */}
-                  {product.assuredBadge && (
-                    <div className="absolute top-2.5 right-2.5 bg-blue-600/95 text-white text-[10px] font-mono font-bold px-2 py-0.5 rounded-md flex items-center gap-1 shadow-xs border border-blue-400/30 backdrop-blur-xs">
-                      <Zap className="w-2.5 h-2.5 text-yellow-300 fill-current" />
-                      <span>Assured</span>
-                    </div>
-                  )}
+                  {/* Top Right Badges: Assured Badge & Wishlist Bookmark Button */}
+                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
+                    {product.assuredBadge && (
+                      <div className="bg-blue-600/95 text-white text-[10px] font-mono font-bold px-2 py-0.5 rounded-md flex items-center gap-1 shadow-xs border border-blue-400/30 backdrop-blur-xs">
+                        <Zap className="w-2.5 h-2.5 text-yellow-300 fill-current" />
+                        <span>Assured</span>
+                      </div>
+                    )}
+
+                    <button
+                      id={`wishlist-btn-grid-${product.id}`}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleWishlist(product.id);
+                      }}
+                      title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                      className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 shadow-sm backdrop-blur-md ${
+                        isWishlisted
+                          ? 'bg-rose-500 text-white hover:bg-rose-600 scale-105'
+                          : 'bg-white/80 dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:text-rose-500 hover:bg-white dark:hover:bg-slate-900 hover:scale-105'
+                      }`}
+                    >
+                      <Heart
+                        className={`w-4 h-4 transition-transform duration-200 ${
+                          isWishlisted ? 'fill-current text-white scale-110' : ''
+                        }`}
+                      />
+                    </button>
+                  </div>
 
                   {/* Stock Notice */}
                   {product.isLowStock && (
@@ -781,14 +882,15 @@ export const ShoppingCatalogScreen: React.FC = () => {
         <div className="space-y-4">
           {filteredProducts.map((product) => {
             const inCart = cart.find((item) => item.product.id === product.id);
+            const isWishlisted = isInWishlist(product.id);
 
             return (
               <div
                 key={product.id}
-                className="bg-white dark:bg-[#191C20] rounded-2xl border border-[#121212]/10 dark:border-slate-800 p-4 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col md:flex-row gap-6 items-start"
+                className="bg-white dark:bg-[#191C20] rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs hover:shadow-md hover:border-blue-500/30 dark:hover:border-blue-500/20 transition-all duration-300 ease-in-out flex flex-col md:flex-row gap-6 items-start group"
               >
                 {/* Left: 16:9 Image */}
-                <div className="w-full md:w-56 aspect-[16/9] md:h-auto bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden shrink-0 relative border border-slate-200/80 dark:border-slate-800">
+                <div className="w-full md:w-56 aspect-[16/9] bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden shrink-0 relative border border-slate-200/80 dark:border-slate-800">
                   <img
                     src={getProduct16x9Image(product)}
                     alt={product.name}
@@ -807,6 +909,28 @@ export const ShoppingCatalogScreen: React.FC = () => {
                       {product.discountPercent}% OFF
                     </div>
                   )}
+
+                  {/* Wishlist toggle button on image corner */}
+                  <button
+                    id={`wishlist-btn-list-thumb-${product.id}`}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleWishlist(product.id);
+                    }}
+                    title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                    className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 shadow-sm backdrop-blur-md ${
+                      isWishlisted
+                        ? 'bg-rose-500 text-white hover:bg-rose-600 scale-105'
+                        : 'bg-white/80 dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:text-rose-500 hover:bg-white dark:hover:bg-slate-900 hover:scale-105'
+                    }`}
+                  >
+                    <Heart
+                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                        isWishlisted ? 'fill-current text-white scale-110' : ''
+                      }`}
+                    />
+                  </button>
                 </div>
 
                 {/* Center: Specs & Info */}
@@ -900,13 +1024,30 @@ export const ShoppingCatalogScreen: React.FC = () => {
                       </button>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => addToCart(product, 1)}
-                      className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center justify-center gap-1.5 shadow-xs"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>Add to Requisition</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        id={`wishlist-btn-list-action-${product.id}`}
+                        type="button"
+                        onClick={() => toggleWishlist(product.id)}
+                        title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                        className={`h-10 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                          isWishlisted
+                            ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-600 dark:text-rose-400'
+                            : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-rose-500 hover:border-rose-300'
+                        }`}
+                      >
+                        <Heart
+                          className={`w-4 h-4 ${isWishlisted ? 'fill-current text-rose-500' : ''}`}
+                        />
+                      </button>
+                      <button
+                        onClick={() => addToCart(product, 1)}
+                        className="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Add to Requisition</span>
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -915,30 +1056,56 @@ export const ShoppingCatalogScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Empty State when no products match real-time query */}
+      {/* Empty State when no products match real-time query or wishlist is empty */}
       {filteredProducts.length === 0 && (
         <div className="bg-white dark:bg-[#191C20] rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-10 sm:p-14 text-center space-y-4">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-200/60 dark:border-blue-800/50">
-            <Search className="w-8 h-8" />
+            {showWishlistOnly ? (
+              <Heart className="w-8 h-8 text-rose-500" />
+            ) : (
+              <Search className="w-8 h-8" />
+            )}
           </div>
           <div className="space-y-1.5 max-w-md mx-auto">
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-              No products found {searchQuery ? `matching "${searchQuery}"` : ''}
+              {showWishlistOnly
+                ? wishlistProductIds.length === 0
+                  ? 'Your Wishlist is Empty'
+                  : 'No Wishlisted Items Match Your Filter'
+                : `No products found ${searchQuery ? `matching "${searchQuery}"` : ''}`}
             </h3>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-              We couldn&apos;t find any enterprise items matching your real-time search for{' '}
-              <span className="font-semibold text-slate-700 dark:text-slate-300">
-                {searchFilterMode === 'CATEGORY'
-                  ? 'categories'
-                  : searchFilterMode === 'NAME'
-                  ? 'product names'
-                  : 'names or categories'}
-              </span>
-              . Try searching by another product name or category, or clear your filters.
+              {showWishlistOnly ? (
+                wishlistProductIds.length === 0 ? (
+                  'You have not bookmarked any items yet. Click the heart icon on any product card or quick view modal to save items for later procurement.'
+                ) : (
+                  'None of your bookmarked wishlist items match the current search query or category filter.'
+                )
+              ) : (
+                <>
+                  We couldn&apos;t find any enterprise items matching your real-time search for{' '}
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    {searchFilterMode === 'CATEGORY'
+                      ? 'categories'
+                      : searchFilterMode === 'NAME'
+                      ? 'product names'
+                      : 'names or categories'}
+                  </span>
+                  . Try searching by another product name or category, or clear your filters.
+                </>
+              )}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            {showWishlistOnly && (
+              <button
+                onClick={() => setShowWishlistOnly(false)}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 transition-colors shadow-xs"
+              >
+                Browse All {products.length} Products
+              </button>
+            )}
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
@@ -953,6 +1120,7 @@ export const ShoppingCatalogScreen: React.FC = () => {
                 setSearchFilterMode('ALL');
                 setSelectedCategory('ALL');
                 setSelectedBrand('ALL');
+                setShowWishlistOnly(false);
               }}
               className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
             >
@@ -1054,6 +1222,25 @@ export const ShoppingCatalogScreen: React.FC = () => {
                 )}
 
                 <div className="pt-4 flex gap-3">
+                  <button
+                    id={`wishlist-btn-quickview-${quickViewProduct.id}`}
+                    type="button"
+                    onClick={() => toggleWishlist(quickViewProduct.id)}
+                    className={`px-4 py-3 rounded-xl font-bold text-sm border flex items-center justify-center gap-2 transition-all ${
+                      isInWishlist(quickViewProduct.id)
+                        ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-600 dark:text-rose-400'
+                        : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-rose-500 hover:border-rose-300'
+                    }`}
+                  >
+                    <Heart
+                      className={`w-4 h-4 ${
+                        isInWishlist(quickViewProduct.id) ? 'fill-current text-rose-500' : ''
+                      }`}
+                    />
+                    <span>
+                      {isInWishlist(quickViewProduct.id) ? 'Wishlisted' : 'Add to Wishlist'}
+                    </span>
+                  </button>
                   <button
                     onClick={() => {
                       addToCart(quickViewProduct, 1);

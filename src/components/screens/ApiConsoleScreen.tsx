@@ -37,6 +37,7 @@ import {
   Database,
   RefreshCw,
   Info,
+  Lock,
 } from 'lucide-react';
 
 export const ApiConsoleScreen: React.FC = () => {
@@ -49,6 +50,7 @@ export const ApiConsoleScreen: React.FC = () => {
     settings,
     updateSettings,
     addToast,
+    openPostmanSecurityModal,
   } = useProcurement();
 
   const totalSpend = useMemo(() => {
@@ -176,15 +178,9 @@ export const ApiConsoleScreen: React.FC = () => {
     }
   };
 
-  // Download Postman Collection JSON
+  // Download Postman Collection JSON with Security Authentication
   const handleDownloadCollection = () => {
-    const link = document.createElement('a');
-    link.href = '/postman_collection.json';
-    link.download = 'multi-handler-api.postman_collection.json';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    addToast('success', 'Collection Downloaded', 'multi-handler-api.postman_collection.json saved to your device');
+    openPostmanSecurityModal();
   };
 
   // Copy Collection JSON
@@ -343,9 +339,9 @@ export const ApiConsoleScreen: React.FC = () => {
             <button
               onClick={handleDownloadCollection}
               className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition-all active:scale-95"
-              title="Download postman_collection.json directly"
+              title="Requires ID & Password authentication to access"
             >
-              <Download className="w-4 h-4" />
+              <Lock className="w-3.5 h-3.5" />
               <span>Download Postman (.json)</span>
             </button>
 

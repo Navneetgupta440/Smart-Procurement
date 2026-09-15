@@ -30,10 +30,11 @@ import {
   Calendar,
   Zap,
   Download,
+  Lock,
 } from 'lucide-react';
 
 export const AboutScreen: React.FC = () => {
-  const { setActiveTab } = useProcurement();
+  const { setActiveTab, openPostmanSecurityModal } = useProcurement();
   const [activeSection, setActiveSection] = useState<'PROJECT' | 'FOUNDER'>('PROJECT');
 
   return (
@@ -326,14 +327,14 @@ export const AboutScreen: React.FC = () => {
               </div>
 
               <div className="flex flex-wrap items-center gap-2.5">
-                <a
-                  href="/postman_collection.json"
-                  download="multi-handler-api.postman_collection.json"
+                <button
+                  onClick={openPostmanSecurityModal}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-xs transition-all"
+                  title="Requires ID & Password authorization to excess and download"
                 >
-                  <Download className="w-4 h-4" />
+                  <Lock className="w-4 h-4" />
                   <span>Download Collection (.json)</span>
-                </a>
+                </button>
 
                 <button
                   onClick={() => setActiveTab(AppTab.API_CONSOLE)}

@@ -16,7 +16,6 @@ import {
   Sparkles,
   ShoppingBag,
   Info,
-  Terminal,
 } from 'lucide-react';
 import { RoleBadge } from '../common/StatusBadges';
 import { ProcureLogo } from '../common/ProcureLogo';
@@ -101,23 +100,6 @@ export const TopBar: React.FC<TopBarProps> = ({
             <span className="hidden sm:inline">Procure Store</span>
           </button>
 
-          {/* Postman API Quick Button */}
-          <button
-            onClick={() => setActiveTab(AppTab.API_CONSOLE)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              activeTab === AppTab.API_CONSOLE
-                ? 'bg-orange-600 text-white shadow-xs'
-                : 'bg-orange-50 text-orange-800 dark:bg-orange-950/50 dark:text-orange-300 border border-orange-200 dark:border-orange-900 hover:bg-orange-100'
-            }`}
-            title="Multi-Handler API Postman Collection (55 endpoints)"
-          >
-            <Terminal className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Postman API</span>
-            <span className="font-mono text-[10px] px-1 py-0.2 rounded-full bg-orange-200 dark:bg-orange-900 text-orange-900 dark:text-orange-200">
-              55
-            </span>
-          </button>
-
           {/* About Project & Creator Quick Button */}
           <button
             onClick={() => setActiveTab(AppTab.ABOUT)}
@@ -171,14 +153,25 @@ export const TopBar: React.FC<TopBarProps> = ({
             <span>High-Value Alert</span>
           </button>
 
-          {/* Theme Toggle */}
+          {/* System-Wide Theme Toggle */}
           <button
+            id="theme-toggle-btn"
+            type="button"
             onClick={toggleTheme}
-            className="p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            title={themeMode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            aria-label="Toggle Theme"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700/80 transition-all shadow-2xs group cursor-pointer active:scale-95"
+            title={themeMode === 'dark' ? 'Switch to Light Mode (currently Dark)' : 'Switch to Dark Mode (currently Light)'}
+            aria-label={themeMode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
-            {themeMode === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
+            <div className="relative w-4 h-4 flex items-center justify-center">
+              {themeMode === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400 transition-transform duration-300 group-hover:rotate-45" />
+              ) : (
+                <Moon className="w-4 h-4 text-slate-600 dark:text-slate-300 transition-transform duration-300 group-hover:-rotate-12" />
+              )}
+            </div>
+            <span className="text-xs font-semibold hidden md:inline capitalize">
+              {themeMode === 'dark' ? 'Dark' : 'Light'}
+            </span>
           </button>
 
           {/* Notifications Bell */}
