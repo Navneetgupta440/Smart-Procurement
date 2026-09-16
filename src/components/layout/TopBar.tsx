@@ -16,6 +16,8 @@ import {
   Sparkles,
   ShoppingBag,
   Info,
+  LogIn,
+  LogOut,
 } from 'lucide-react';
 import { RoleBadge } from '../common/StatusBadges';
 import { ProcureLogo } from '../common/ProcureLogo';
@@ -45,6 +47,8 @@ export const TopBar: React.FC<TopBarProps> = ({
     addToast,
     setActiveTab,
     activeTab,
+    isAuthenticated,
+    logout,
   } = useProcurement();
 
   const [showPersonaMenu, setShowPersonaMenu] = useState(false);
@@ -261,22 +265,42 @@ export const TopBar: React.FC<TopBarProps> = ({
                       );
                     })}
                   </div>
-                  <div className="p-2 border-t border-slate-100 dark:border-slate-800 mt-1">
+                  <div className="p-2 border-t border-slate-100 dark:border-slate-800 mt-1 space-y-1">
                     <button
                       onClick={() => {
                         setShowPersonaMenu(false);
-                        onOpenAuth();
+                        setActiveTab(AppTab.AUTH);
                       }}
-                      className="w-full py-1.5 px-3 text-xs font-semibold text-[#121212] dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center justify-center gap-1.5"
+                      className="w-full py-1.5 px-3 text-xs font-semibold text-[#00639A] dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 rounded-lg flex items-center justify-center gap-1.5"
                     >
-                      <UserCheck className="w-3.5 h-3.5" />
-                      Account Profile &amp; Sign Up
+                      <LogIn className="w-3.5 h-3.5" />
+                      Open Dedicated Login / Register Page
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowPersonaMenu(false);
+                        logout();
+                      }}
+                      className="w-full py-1.5 px-3 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg flex items-center justify-center gap-1.5"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      Sign Out
                     </button>
                   </div>
                 </div>
               </>
             )}
           </div>
+
+          {!isAuthenticated && (
+            <button
+              onClick={() => setActiveTab(AppTab.AUTH)}
+              className="px-3 py-1.5 rounded-xl bg-[#00639A] hover:bg-[#004B76] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">Sign In</span>
+            </button>
+          )}
         </div>
       </div>
     </header>

@@ -925,3 +925,104 @@ export function substituteVariables(template: string, env: PostmanEnvironment): 
     return (env as any)[key] !== undefined ? String((env as any)[key]) : `{{${key}}}`;
   });
 }
+
+/**
+ * Parses raw Postman Collection v2.1.0 JSON into structured folders and items
+ */
+export function parsePostmanCollectionJson(jsonString: string): {
+  folders: PostmanFolder[];
+  metadata: {
+    id: string;
+    name: string;
+    schema: string;
+    exporterId?: string;
+    totalEndpoints: number;
+    categoriesCount: number;
+  };
+} {
+  const parsed = JSON.parse(jsonString);
+  const info = parsed.info || {};
+  const rawItems = parsed.item || [];
+
+  const folders: PostmanFolder[] = [];
+  let totalEndpoints = 0;
+
+  rawItems.forEach((folderItem: any, folderIdx: number) => {
+    if (Array.isArray(folderItem.item)) {
+      const items: PostmanRequestItem[] = [];
+
+      folderItem.item.forEach((subItem: any, itemIdx: number) => {
+        const req = subItem.request || {};
+        const method = (req.method || 'GET').toUpperCase() as any;
+        const rawUrl = typeof req.url === 'string' ? req.url : req.url?.raw || '';
+
+        let path = '';
+        if (typeof req.url === 'object' && Array.isArray(req.url.path)) {
+          path = '/' + req.url.path.join('/');
+        } else if (typeof rawUrl === 'string') {
+          const match = rawUrl.match(/\{\{base_url\}\}(\/.*)/);
+          path = match ? match[1] : rawUrl;
+        }
+
+        const headers = Array.isArray(req.header)
+          ? req.header.map((h: any) => ({ key: h.key || '', value: h.value || '' }))
+          : [];
+
+        let body: any = undefined;
+        if (req.body) {
+          body = {
+            mode: req.body.mode || 'raw',
+            raw: req.body.raw,
+            formdata: req.body.formdata,
+            options: req.body.options,
+          };
+        }
+
+        let testScript: string | undefined = undefined;
+        if (Array.isArray(subItem.event)) {
+          const testEvent = subItem.event.find((e: any) => e.listen === 'test');
+          if (testEvent?.script?.exec) {
+            testScript = Array.isArray(testEvent.script.exec)
+              ? testEvent.script.exec.join('\n')
+              : String(testEvent.script.exec);
+          }
+        }
+
+        items.push({
+          id: `imp-${folderIdx}-${itemIdx}-${Date.now().toString().slice(-4)}`,
+          name: subItem.name || `Endpoint ${itemIdx + 1}`,
+          method,
+          path,
+          rawUrl,
+          headers,
+          body,
+          folderName: folderItem.name || 'Endpoints',
+          description: req.description,
+          testScript,
+        });
+        totalEndpoints++;
+      });
+
+      folders.push({
+        id: `folder-${folderIdx}-${(folderItem.name || '').toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+        name: folderItem.name || `Category ${folderIdx + 1}`,
+        icon: 'Layers',
+        color: 'blue',
+        description: folderItem.description || `${items.length} API endpoints`,
+        items,
+      });
+    }
+  });
+
+  return {
+    folders,
+    metadata: {
+      id: info._postman_id || info.id || 'custom-collection',
+      name: info.name || 'Multi-Handler API',
+      schema: info.schema || 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
+      exporterId: info._exporter_id || '36971552',
+      totalEndpoints,
+      categoriesCount: folders.length,
+    },
+  };
+}

@@ -554,6 +554,7 @@ export enum AppTab {
   MEMBERSHIP = 'MEMBERSHIP',
   API_CONSOLE = 'API_CONSOLE',
   ABOUT = 'ABOUT',
+  AUTH = 'AUTH',
 }
 
 export interface ProcurementKpiSummary {

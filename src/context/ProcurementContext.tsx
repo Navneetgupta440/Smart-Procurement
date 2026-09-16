@@ -79,6 +79,8 @@ interface ProcurementContextType {
   highValueAlert: HighValueOrderAlert | null;
   demoLifecycleStep: number;
   toasts: Toast[];
+  isAuthenticated: boolean;
+  setIsAuthenticated: (auth: boolean) => void;
 
   // Wishlist
   wishlistProductIds: string[];
@@ -225,6 +227,7 @@ const STORAGE_KEYS = {
   SETTINGS: 'sp_settings_v2',
   THEME: 'sp_theme_v2',
   WISHLIST: 'sp_wishlist_v2',
+  IS_AUTH: 'sp_is_authenticated_v2',
 };
 
 export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -345,7 +348,15 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return saved ? JSON.parse(saved) : INITIAL_SETTINGS;
   });
 
-  const [activeTab, setActiveTab] = useState<AppTab>(AppTab.DASHBOARD);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.IS_AUTH);
+    return saved === 'true';
+  });
+
+  const [activeTab, setActiveTab] = useState<AppTab>(() => {
+    const savedAuth = localStorage.getItem(STORAGE_KEYS.IS_AUTH);
+    return savedAuth === 'true' ? AppTab.DASHBOARD : AppTab.AUTH;
+  });
   const [themeMode, setThemeModeState] = useState<'light' | 'dark'>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.THEME);
@@ -500,21 +511,19 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const toggleTheme = () => {
-    setThemeModeState((prev) => {
-      const nextMode = prev === 'dark' ? 'light' : 'dark';
-      try {
-        localStorage.setItem(STORAGE_KEYS.THEME, nextMode);
-      } catch {
-        // ignore
-      }
-      if (nextMode === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      addToast('info', `${nextMode === 'dark' ? 'Dark' : 'Light'} Mode Enabled`, `System switched to ${nextMode} mode`);
-      return nextMode;
-    });
+    const nextMode = themeMode === 'dark' ? 'light' : 'dark';
+    setThemeModeState(nextMode);
+    try {
+      localStorage.setItem(STORAGE_KEYS.THEME, nextMode);
+    } catch {
+      // ignore
+    }
+    if (nextMode === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    addToast('info', `${nextMode === 'dark' ? 'Dark' : 'Light'} Mode Enabled`, `System switched to ${nextMode} mode`);
   };
 
   // Internal log audit helper
@@ -608,6 +617,11 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
       return false;
     }
     setCurrentUserId(found.id);
+    setIsAuthenticated(true);
+    try {
+      localStorage.setItem(STORAGE_KEYS.IS_AUTH, 'true');
+    } catch {}
+    setActiveTab(AppTab.DASHBOARD);
     logAudit(found, AuditAction.LOGIN, 'USER', found.id, `User ${found.name} logged in`);
     addToast('success', 'Welcome Back', `Logged in as ${found.name}`);
     return true;
@@ -643,6 +657,11 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
     };
     setUsers((prev) => [...prev, newUser]);
     setCurrentUserId(newUser.id);
+    setIsAuthenticated(true);
+    try {
+      localStorage.setItem(STORAGE_KEYS.IS_AUTH, 'true');
+    } catch {}
+    setActiveTab(AppTab.DASHBOARD);
     logAudit(newUser, AuditAction.SIGN_UP, 'USER', newUser.id, `New account registered: ${newUser.name}`);
     sendNotification(
       newUser.id,
@@ -656,9 +675,12 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const logout = () => {
     logAudit(currentUser, AuditAction.LOGOUT, 'USER', currentUser.id, `User ${currentUser.name} logged out`);
-    const admin = users.find((u) => u.role === UserRole.ADMIN) || users[0];
-    setCurrentUserId(admin.id);
-    addToast('info', 'Logged Out', `Switched to default administrator`);
+    setIsAuthenticated(false);
+    try {
+      localStorage.setItem(STORAGE_KEYS.IS_AUTH, 'false');
+    } catch {}
+    setActiveTab(AppTab.AUTH);
+    addToast('info', 'Logged Out', `Signed out successfully. Please sign in or register to continue.`);
   };
 
   const upgradeMembership = (plan: MembershipPlan, billingCycle: 'MONTHLY' | 'YEARLY') => {
@@ -2003,6 +2025,8 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
         setShowAuthDialog,
         showNewRequisitionModal,
         setShowNewRequisitionModal,
+        isAuthenticated,
+        setIsAuthenticated,
         setActiveTab,
         setThemeMode,
         toggleTheme,

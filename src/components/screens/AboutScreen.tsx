@@ -35,7 +35,7 @@ import {
 
 export const AboutScreen: React.FC = () => {
   const { setActiveTab, openPostmanSecurityModal } = useProcurement();
-  const [activeSection, setActiveSection] = useState<'PROJECT' | 'FOUNDER'>('PROJECT');
+  const [activeSection, setActiveSection] = useState<'PROJECT' | 'FOUNDER' | 'API'>('PROJECT');
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-12">
@@ -73,6 +73,18 @@ export const AboutScreen: React.FC = () => {
               >
                 <Workflow className="w-4 h-4" />
                 <span>Project Architecture &amp; Capabilities</span>
+              </button>
+
+              <button
+                onClick={() => setActiveSection('API')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all ${
+                  activeSection === 'API'
+                    ? 'bg-amber-400 text-[#121212] shadow-sm'
+                    : 'bg-white/10 text-white hover:bg-white/20'
+                }`}
+              >
+                <Terminal className="w-4 h-4" />
+                <span>API &amp; Postman Suite (55 Endpoints)</span>
               </button>
 
               <button
@@ -152,6 +164,51 @@ export const AboutScreen: React.FC = () => {
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 Live waypoint geotracking with BlueDart/SpeedExpress waybills and automated inventory stock balance reconciliation upon dock receiving confirmation.
               </p>
+            </div>
+          </div>
+
+          {/* Interactive API Suite Quick Access Spotlight */}
+          <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 border border-indigo-800/50 shadow-lg relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+              <div className="space-y-2 max-w-2xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-xs font-mono font-bold">
+                  <Terminal className="w-3.5 h-3.5" />
+                  <span>Interactive API Ecosystem (55 Endpoints Available)</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">
+                  Direct API Console &amp; Postman Collection Accessible Here
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-300">
+                  Every procurement capability—from multi-tier PO approval to webhook triggers and carrier dispatches—is exposed via 55 production-ready REST endpoints. Test them right in the browser or download the Postman v2.1 collection.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab(AppTab.API_CONSOLE)}
+                  className="px-4 py-2.5 min-h-[44px] rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs sm:text-sm shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Terminal className="w-4 h-4" />
+                  <span>Launch Live API Console</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveSection('API')}
+                  className="px-4 py-2.5 min-h-[44px] rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/20 transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Code className="w-4 h-4" />
+                  <span>Browse Endpoint Directory</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={openPostmanSecurityModal}
+                  className="px-4 py-2.5 min-h-[44px] rounded-xl bg-orange-600/80 hover:bg-orange-600 text-white font-bold text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Export Collection</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -740,6 +797,207 @@ export const AboutScreen: React.FC = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SECTION 3: INTERACTIVE API & POSTMAN SUITE */}
+      {activeSection === 'API' && (
+        <div className="space-y-8 animate-in fade-in duration-200">
+          {/* API Header & Quick Launch Controls */}
+          <div className="bg-white dark:bg-[#191C20] rounded-3xl p-6 sm:p-8 border border-[#121212]/10 dark:border-slate-800 shadow-sm space-y-6">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-950 text-orange-800 dark:text-orange-300 text-xs font-mono font-bold">
+                  <Terminal className="w-3.5 h-3.5" />
+                  <span>Postman v2.1 Certified • 55 Live Endpoints</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-serif font-bold text-slate-900 dark:text-slate-100">
+                  Full REST API Architecture &amp; Test Console
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-2xl">
+                  Inspect the complete HTTP REST contract powering the Smart Procurement platform. You can trigger live mock runs directly in the browser or export the collection to Postman Desktop.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab(AppTab.API_CONSOLE)}
+                  className="px-5 py-2.5 min-h-[44px] rounded-xl bg-[#00639A] hover:bg-[#004B76] text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-98"
+                >
+                  <Terminal className="w-4 h-4" />
+                  <span>Open API Console &amp; Runner</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={openPostmanSecurityModal}
+                  className="px-4 py-2.5 min-h-[44px] rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs sm:text-sm shadow-sm transition-all flex items-center gap-2 cursor-pointer active:scale-98"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download Collection JSON</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Metrics Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                <div className="text-[10px] font-mono uppercase text-slate-500">Endpoints</div>
+                <div className="text-xl font-bold text-slate-900 dark:text-slate-100">55 Routes</div>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                <div className="text-[10px] font-mono uppercase text-slate-500">Domain Modules</div>
+                <div className="text-xl font-bold text-slate-900 dark:text-slate-100">7 Subsystems</div>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                <div className="text-[10px] font-mono uppercase text-slate-500">Security</div>
+                <div className="text-xl font-bold text-slate-900 dark:text-slate-100">JWT + RBAC</div>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                <div className="text-[10px] font-mono uppercase text-slate-500">Spec Format</div>
+                <div className="text-xl font-bold text-slate-900 dark:text-slate-100">Postman 2.1</div>
+              </div>
+            </div>
+          </div>
+
+          {/* 7 Modular API Directory */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-serif font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <FolderGit2 className="w-5 h-5 text-[#00639A]" />
+              <span>Categorized REST API Modules</span>
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                {
+                  title: '1. Authentication & Enterprise Personas',
+                  base: '/api/v1/auth',
+                  count: '8 Endpoints',
+                  desc: 'JWT token issuance, persona switching across 7 roles, session audit logging, and membership plan upgrades.',
+                  samples: [
+                    'POST /api/v1/auth/login',
+                    'POST /api/v1/auth/register',
+                    'POST /api/v1/auth/switch-persona',
+                    'GET /api/v1/auth/me',
+                  ],
+                },
+                {
+                  title: '2. Purchase Requests & Multi-Item Line Requisitions',
+                  base: '/api/v1/requests',
+                  count: '9 Endpoints',
+                  desc: 'Department requisition submission, multi-tier approval evaluation, budget threshold checks, and approval status transition.',
+                  samples: [
+                    'GET /api/v1/requests',
+                    'POST /api/v1/requests',
+                    'PUT /api/v1/requests/{id}/approve',
+                    'PUT /api/v1/requests/{id}/reject',
+                  ],
+                },
+                {
+                  title: '3. Purchase Orders & 3-Tier Dynamic Approvals',
+                  base: '/api/v1/orders',
+                  count: '11 Endpoints',
+                  desc: 'Requisition-to-PO conversion, tier-1/tier-2/tier-3 sequential approvals, vendor acceptance/rejection, and PO generation.',
+                  samples: [
+                    'GET /api/v1/orders',
+                    'POST /api/v1/orders/convert-request',
+                    'PUT /api/v1/orders/{id}/approve-level',
+                    'PUT /api/v1/orders/{id}/supplier-accept',
+                  ],
+                },
+                {
+                  title: '4. Logistics, Waybills & Carrier Tracking',
+                  base: '/api/v1/deliveries',
+                  count: '7 Endpoints',
+                  desc: 'Carrier dispatches (BlueDart, Delhivery, FedEx), milestone status advancement, geocoded waypoint logs, and auto-inwarding.',
+                  samples: [
+                    'GET /api/v1/deliveries',
+                    'POST /api/v1/deliveries/dispatch',
+                    'PUT /api/v1/deliveries/{id}/advance-status',
+                  ],
+                },
+                {
+                  title: '5. Supplier Performance & Weighted Rating Matrix',
+                  base: '/api/v1/suppliers',
+                  count: '8 Endpoints',
+                  desc: 'Vendor registration, weighted multi-criteria rating submission (Pricing 35%, Quality 20%, Delivery 20%, SLA), and vendor ranking.',
+                  samples: [
+                    'GET /api/v1/suppliers',
+                    'POST /api/v1/suppliers',
+                    'POST /api/v1/suppliers/rate',
+                    'GET /api/v1/suppliers/rank-by-product',
+                  ],
+                },
+                {
+                  title: '6. Real-Time Inventory & Auto-Replenishment',
+                  base: '/api/v1/inventory',
+                  count: '6 Endpoints',
+                  desc: 'Stock level tracking, reorder point triggers, manual audit adjustments, and algorithmic replenishment recommendation calculations.',
+                  samples: [
+                    'GET /api/v1/inventory/items',
+                    'POST /api/v1/inventory/adjust',
+                    'GET /api/v1/inventory/replenishment-recommendations',
+                  ],
+                },
+                {
+                  title: '7. Analytics, Compliance & System Audit Logs',
+                  base: '/api/v1/analytics',
+                  count: '6 Endpoints',
+                  desc: 'Executive spend analytics, category budget allocations, tamper-evident audit trails, and system settings update.',
+                  samples: [
+                    'GET /api/v1/analytics/kpis',
+                    'GET /api/v1/analytics/spend-breakdown',
+                    'GET /api/v1/audit-logs',
+                  ],
+                },
+              ].map((mod, i) => (
+                <div
+                  key={i}
+                  className="bg-white dark:bg-[#191C20] rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                      {mod.title}
+                    </h4>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-sky-300 font-bold">
+                      {mod.count}
+                    </span>
+                  </div>
+
+                  <div className="font-mono text-xs text-[#00639A] dark:text-sky-400 bg-slate-50 dark:bg-slate-900/60 p-2 rounded-lg border border-slate-100 dark:border-slate-800">
+                    Base: {mod.base}
+                  </div>
+
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {mod.desc}
+                  </p>
+
+                  <div className="space-y-1 pt-1">
+                    <div className="text-[10px] font-mono uppercase text-slate-400">Sample Routes:</div>
+                    {mod.samples.map((s, idx) => (
+                      <div
+                        key={idx}
+                        className="text-[11px] font-mono text-slate-700 dark:text-slate-300 bg-slate-100/70 dark:bg-slate-800/60 px-2 py-1 rounded-md"
+                      >
+                        {s}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab(AppTab.API_CONSOLE)}
+                      className="text-xs font-bold text-[#00639A] dark:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Test in API Console</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

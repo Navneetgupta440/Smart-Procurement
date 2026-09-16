@@ -204,7 +204,7 @@ export const PurchaseOrdersScreen: React.FC = () => {
                         Line Items ({order.items?.length || 0})
                       </h4>
                       <div className="overflow-x-auto rounded-2xl border border-slate-100 dark:border-slate-800">
-                        <table className="w-full text-left text-xs">
+                        <table className="w-full text-left text-xs min-w-[460px]">
                           <thead className="bg-slate-50 dark:bg-slate-900/80 text-slate-400 font-semibold uppercase text-[10px]">
                             <tr>
                               <th className="p-3">Product Description</th>
@@ -364,7 +364,7 @@ export const PurchaseOrdersScreen: React.FC = () => {
               <select
                 value={carrierName}
                 onChange={(e) => setCarrierName(e.target.value)}
-                className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                className="w-full text-xs px-3 py-2 min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100"
               >
                 <option value="BlueDart Express">BlueDart Express (Air Logistics)</option>
                 <option value="Delhivery Surface">Delhivery Surface Cargo</option>
@@ -381,21 +381,23 @@ export const PurchaseOrdersScreen: React.FC = () => {
                 type="text"
                 value={trackingNumber}
                 onChange={(e) => setTrackingNumber(e.target.value)}
-                className="w-full text-xs font-mono px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                className="w-full text-xs font-mono px-3 py-2 min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100"
               />
             </div>
 
             <div className="flex gap-2 justify-end pt-2">
               <button
+                type="button"
                 onClick={() => setDispatchOrderObj(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800"
+                className="px-4 py-2.5 min-h-[44px] text-xs font-semibold text-slate-600 hover:text-slate-800"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleConfirmDispatch}
                 disabled={isSubmitting}
-                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs disabled:opacity-50"
+                className="px-5 py-2.5 min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs disabled:opacity-50 flex items-center justify-center"
               >
                 Confirm Dispatch & Handover
               </button>

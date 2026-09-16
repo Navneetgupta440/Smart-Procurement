@@ -14,10 +14,20 @@ import {
   Terminal,
   ShoppingBag,
   Info,
+  LogIn,
+  UserCheck,
 } from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
-  const { activeTab, setActiveTab, requests, orders, deliveries, lowStockProducts } = useProcurement();
+  const {
+    activeTab,
+    setActiveTab,
+    requests,
+    orders,
+    deliveries,
+    lowStockProducts,
+    isAuthenticated,
+  } = useProcurement();
 
   const pendingRequestsCount = requests.filter(
     (r) => r.status === RequestStatus.PENDING_APPROVAL || r.status === RequestStatus.SUBMITTED
@@ -41,13 +51,14 @@ export const BottomNav: React.FC = () => {
     { tab: AppTab.ANALYTICS, label: 'Analytics & Audit', icon: BarChart3 },
     { tab: AppTab.MEMBERSHIP, label: 'Plans', icon: Award },
     { tab: AppTab.API_CONSOLE, label: 'Postman API', icon: Terminal, badge: 55, badgeVariant: 'postman' },
-    { tab: AppTab.ABOUT, label: 'About & Founder', icon: Info },
+    { tab: AppTab.AUTH, label: isAuthenticated ? 'Portal Auth' : 'Sign In', icon: isAuthenticated ? UserCheck : LogIn },
+    { tab: AppTab.ABOUT, label: 'About & API', icon: Info },
   ];
 
   return (
-    <nav className="bg-white/95 dark:bg-[#191C20]/95 backdrop-blur-md border-b border-[#E2E2E6] dark:border-[#33363A] shadow-xs px-4">
-      <div className="max-w-7xl mx-auto overflow-x-auto no-scrollbar">
-        <div className="flex items-center gap-1 sm:gap-2 py-2 min-w-max">
+    <nav className="bg-white/95 dark:bg-[#191C20]/95 backdrop-blur-md border-b border-[#E2E2E6] dark:border-[#33363A] shadow-xs px-2 sm:px-4">
+      <div className="max-w-7xl mx-auto overflow-x-auto no-scrollbar scroll-smooth">
+        <div className="flex items-center gap-1 sm:gap-2 py-1.5 min-w-max">
           {navItems.map((item) => {
             const isActive = activeTab === item.tab;
             const Icon = item.icon;
@@ -56,14 +67,14 @@ export const BottomNav: React.FC = () => {
               <button
                 key={item.tab}
                 onClick={() => setActiveTab(item.tab)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all relative ${
+                className={`flex items-center gap-2 px-3 py-2 min-h-[44px] rounded-xl text-xs font-semibold transition-all duration-200 ease-out relative cursor-pointer hover:scale-[1.04] active:scale-95 ${
                   isActive
-                    ? 'bg-[#00639A] text-white shadow-sm'
+                    ? 'bg-[#00639A] text-white shadow-sm ring-2 ring-[#00639A]/20'
                     : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
-                <span>{item.label}</span>
+                <span className="whitespace-nowrap">{item.label}</span>
                 {item.badge !== undefined && item.badge > 0 && (
                   <span
                     className={`ml-1 text-[10px] font-bold px-1.5 py-0.2 rounded-full ${

@@ -6,10 +6,13 @@ import {
   DEFAULT_POSTMAN_ENVIRONMENT,
   PostmanRequestItem,
   PostmanEnvironment,
+  PostmanFolder,
   substituteVariables,
 } from '../../data/postmanCollection';
 import { executePostmanRequest, PostmanExecutionResponse } from '../../services/multiHandlerApiDispatcher';
 import { ApiResponseResult } from '../../types/procurement';
+import { PostmanCollectionRunnerModal } from '../modals/PostmanCollectionRunnerModal';
+import { PostmanImportModal } from '../modals/PostmanImportModal';
 import {
   Terminal,
   Play,
@@ -61,13 +64,19 @@ export const ApiConsoleScreen: React.FC = () => {
   const [consoleMode, setConsoleMode] = useState<'POSTMAN' | 'WORKFLOW'>('POSTMAN');
 
   // ===================== POSTMAN COLLECTION STATE =====================
-  const [activeFolderId, setActiveFolderId] = useState<string>('auth-user');
+  const [collectionFolders, setCollectionFolders] = useState<PostmanFolder[]>(POSTMAN_COLLECTION_FOLDERS);
+  const [collectionMetadata, setCollectionMetadata] = useState(RAW_POSTMAN_COLLECTION_METADATA);
+  const [showRunnerModal, setShowRunnerModal] = useState(false);
+  const [runnerInitialFolder, setRunnerInitialFolder] = useState<string>('ALL');
+  const [showImportModal, setShowImportModal] = useState(false);
+
+  const [activeFolderId, setActiveFolderId] = useState<string>(collectionFolders[0]?.id || 'auth-user');
   const [selectedRequestItem, setSelectedRequestItem] = useState<PostmanRequestItem>(
-    POSTMAN_COLLECTION_FOLDERS[0].items[1] // Default to "Login"
+    collectionFolders[0]?.items[1] || collectionFolders[0]?.items[0] // Default to "Login"
   );
   const [searchQuery, setSearchQuery] = useState('');
   const [requestBodyText, setRequestBodyText] = useState<string>(
-    POSTMAN_COLLECTION_FOLDERS[0].items[1]?.body?.raw || ''
+    collectionFolders[0]?.items[1]?.body?.raw || ''
   );
   const [envVariables, setEnvVariables] = useState<PostmanEnvironment>(DEFAULT_POSTMAN_ENVIRONMENT);
   const [showEnvDrawer, setShowEnvDrawer] = useState(false);
@@ -107,12 +116,12 @@ export const ApiConsoleScreen: React.FC = () => {
   // Filtered requests list across all folders or active folder
   const filteredRequests = useMemo(() => {
     if (!searchQuery.trim()) {
-      const currentFolder = POSTMAN_COLLECTION_FOLDERS.find((f) => f.id === activeFolderId);
+      const currentFolder = collectionFolders.find((f) => f.id === activeFolderId);
       return currentFolder ? currentFolder.items : [];
     }
     const q = searchQuery.toLowerCase();
     const allItems: PostmanRequestItem[] = [];
-    POSTMAN_COLLECTION_FOLDERS.forEach((folder) => {
+    collectionFolders.forEach((folder) => {
       folder.items.forEach((item) => {
         if (
           item.name.toLowerCase().includes(q) ||
@@ -125,7 +134,23 @@ export const ApiConsoleScreen: React.FC = () => {
       });
     });
     return allItems;
-  }, [activeFolderId, searchQuery]);
+  }, [activeFolderId, searchQuery, collectionFolders]);
+
+  const handleImportSuccess = (newFolders: PostmanFolder[], metadata: any) => {
+    setCollectionFolders(newFolders);
+    setCollectionMetadata(metadata);
+    if (newFolders.length > 0) {
+      setActiveFolderId(newFolders[0].id);
+      if (newFolders[0].items.length > 0) {
+        handleSelectRequest(newFolders[0].items[0]);
+      }
+    }
+    addToast(
+      'success',
+      'Collection Imported',
+      `Loaded "${metadata.name}" with ${metadata.totalEndpoints} endpoints across ${newFolders.length} categories.`
+    );
+  };
 
   // Handle select endpoint
   const handleSelectRequest = (item: PostmanRequestItem) => {
@@ -334,11 +359,32 @@ export const ApiConsoleScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick Action Badges / Download Attachment */}
-          <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 shrink-0">
+          {/* Quick Action Badges / Download / Runner / Import */}
+          <div className="flex flex-wrap lg:flex-col gap-2.5 shrink-0">
+            <button
+              onClick={() => {
+                setRunnerInitialFolder('ALL');
+                setShowRunnerModal(true);
+              }}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition-all active:scale-95"
+              title="Run automated sequential test runner for all endpoints"
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>Run Collection ({collectionMetadata.totalEndpoints} APIs)</span>
+            </button>
+
+            <button
+              onClick={() => setShowImportModal(true)}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all"
+              title="Paste or upload custom Postman Collection JSON"
+            >
+              <Download className="w-3.5 h-3.5 rotate-180" />
+              <span>Import Collection JSON</span>
+            </button>
+
             <button
               onClick={handleDownloadCollection}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shadow-md transition-all active:scale-95"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all"
               title="Requires ID & Password authentication to access"
             >
               <Lock className="w-3.5 h-3.5" />
@@ -424,7 +470,7 @@ export const ApiConsoleScreen: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             {/* Folder Horizontal Scroll */}
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-              {POSTMAN_COLLECTION_FOLDERS.map((folder) => {
+              {collectionFolders.map((folder) => {
                 const isActive = activeFolderId === folder.id && !searchQuery.trim();
                 return (
                   <button
@@ -456,24 +502,38 @@ export const ApiConsoleScreen: React.FC = () => {
               })}
             </div>
 
-            {/* Quick Search */}
-            <div className="relative shrink-0 w-full md:w-64">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-              <input
-                type="text"
-                placeholder="Search 55 endpoints..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#191C20] text-slate-900 dark:text-slate-100"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs"
-                >
-                  ✕
-                </button>
-              )}
+            {/* Quick Action: Run Folder Suite + Search */}
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => {
+                  setRunnerInitialFolder(activeFolderId);
+                  setShowRunnerModal(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/40 dark:hover:bg-orange-900/40 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-xs font-bold transition-all shrink-0"
+                title="Run test suite for currently active category"
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Run Folder</span>
+              </button>
+
+              <div className="relative shrink-0 w-full md:w-56">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder={`Search ${collectionMetadata.totalEndpoints} endpoints...`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#191C20] text-slate-900 dark:text-slate-100"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -485,7 +545,7 @@ export const ApiConsoleScreen: React.FC = () => {
                 <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                   {searchQuery.trim()
                     ? `Results (${filteredRequests.length})`
-                    : POSTMAN_COLLECTION_FOLDERS.find((f) => f.id === activeFolderId)?.name}
+                    : collectionFolders.find((f) => f.id === activeFolderId)?.name}
                 </span>
                 <span className="text-[10px] font-mono text-slate-500">
                   {filteredRequests.length} endpoints
@@ -1016,6 +1076,28 @@ export const ApiConsoleScreen: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Postman Automated Collection Runner Modal */}
+      {showRunnerModal && (
+        <PostmanCollectionRunnerModal
+          isOpen={showRunnerModal}
+          onClose={() => setShowRunnerModal(false)}
+          folders={collectionFolders}
+          environment={envVariables}
+          onUpdateEnvironment={(updates) => setEnvVariables((prev) => ({ ...prev, ...updates }))}
+          initialFolderId={runnerInitialFolder}
+          appContextData={{ requests, orders, deliveries, products, kpis: { totalSpend } }}
+        />
+      )}
+
+      {/* Postman Import Modal */}
+      {showImportModal && (
+        <PostmanImportModal
+          isOpen={showImportModal}
+          onClose={() => setShowImportModal(false)}
+          onImportSuccess={handleImportSuccess}
+        />
       )}
     </div>
   );

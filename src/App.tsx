@@ -20,12 +20,14 @@ import { MembershipScreen } from './components/screens/MembershipScreen';
 import { ApiConsoleScreen } from './components/screens/ApiConsoleScreen';
 import { ShoppingCatalogScreen } from './components/screens/ShoppingCatalogScreen';
 import { AboutScreen } from './components/screens/AboutScreen';
+import { LoginRegisterScreen } from './components/screens/LoginRegisterScreen';
 import { PostmanSecurityModal } from './components/common/PostmanSecurityModal';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
   const {
     activeTab,
+    isAuthenticated,
     showNotificationsModal,
     setShowNotificationsModal,
     showAuthDialog,
@@ -39,7 +41,14 @@ const MainLayout: React.FC = () => {
   const [showWalkthroughModal, setShowWalkthroughModal] = React.useState(false);
 
   const renderActiveScreen = () => {
+    // If not authenticated and not explicitly viewing the public About screen, show Login/Register
+    if (!isAuthenticated && activeTab !== AppTab.ABOUT) {
+      return <LoginRegisterScreen />;
+    }
+
     switch (activeTab) {
+      case AppTab.AUTH:
+        return <LoginRegisterScreen />;
       case AppTab.DASHBOARD:
         return <DashboardScreen />;
       case AppTab.SHOPPING:

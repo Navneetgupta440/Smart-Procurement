@@ -350,7 +350,7 @@ export const PurchaseRequestsScreen: React.FC = () => {
             </div>
 
             <form onSubmit={handleSubmitRequest} className="p-5 overflow-y-auto space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Priority Level
@@ -358,7 +358,7 @@ export const PurchaseRequestsScreen: React.FC = () => {
                   <select
                     value={selectedPriority}
                     onChange={(e) => setSelectedPriority(e.target.value as Priority)}
-                    className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                    className="w-full text-xs px-3 py-2 min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100"
                   >
                     {Object.values(Priority).map((p) => (
                       <option key={p} value={p}>
@@ -375,7 +375,7 @@ export const PurchaseRequestsScreen: React.FC = () => {
                     type="text"
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
-                    className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                    className="w-full text-xs px-3 py-2 min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100"
                   />
                 </div>
               </div>
@@ -390,7 +390,7 @@ export const PurchaseRequestsScreen: React.FC = () => {
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="Specify intended project, client deliverable, or operational requirement..."
-                  className="w-full text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                  className="w-full text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-[44px]"
                 />
               </div>
 
@@ -403,54 +403,60 @@ export const PurchaseRequestsScreen: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleAddItemRow}
-                    className="text-xs font-bold text-[#00639A] dark:text-sky-400 hover:underline flex items-center gap-1"
+                    className="text-xs font-bold text-[#00639A] dark:text-sky-400 hover:underline flex items-center gap-1 min-h-[44px] sm:min-h-0"
                   >
                     <PlusCircle className="w-3.5 h-3.5" />
                     Add Another Product
                   </button>
                 </div>
 
-                <div className="space-y-2 max-h-48 overflow-y-auto">
+                <div className="space-y-2.5 max-h-56 overflow-y-auto">
                   {formItems.map((item, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800"
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800"
                     >
-                      <select
-                        value={item.product.id}
-                        onChange={(e) => handleItemChange(idx, e.target.value, item.quantity)}
-                        className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-                      >
-                        {products.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.name} (₹{p.unitPrice.toLocaleString('en-IN')}/{p.unit})
-                          </option>
-                        ))}
-                      </select>
-
-                      <div className="w-20">
-                        <input
-                          type="number"
-                          min={1}
-                          value={item.quantity}
-                          onChange={(e) => handleItemChange(idx, item.product.id, parseInt(e.target.value) || 1)}
-                          className="w-full text-xs px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-center"
-                        />
-                      </div>
-
-                      <div className="w-28 text-right text-xs font-bold text-slate-900 dark:text-slate-100">
-                        ₹{(item.product.unitPrice * item.quantity).toLocaleString('en-IN')}
-                      </div>
-
-                      {formItems.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveItemRow(idx)}
-                          className="text-slate-400 hover:text-rose-600 p-1"
+                      <div className="flex-1 min-w-0">
+                        <select
+                          value={item.product.id}
+                          onChange={(e) => handleItemChange(idx, e.target.value, item.quantity)}
+                          className="w-full text-xs px-2.5 py-2 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                          {products.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.name} (₹{p.unitPrice.toLocaleString('en-IN')}/{p.unit})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] font-semibold text-slate-500">Qty:</span>
+                          <input
+                            type="number"
+                            min={1}
+                            value={item.quantity}
+                            onChange={(e) => handleItemChange(idx, item.product.id, parseInt(e.target.value) || 1)}
+                            className="w-16 text-xs px-2 py-2 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-center font-bold"
+                          />
+                        </div>
+
+                        <div className="w-24 text-right text-xs font-bold text-slate-900 dark:text-slate-100">
+                          ₹{(item.product.unitPrice * item.quantity).toLocaleString('en-IN')}
+                        </div>
+
+                        {formItems.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItemRow(idx)}
+                            className="text-slate-400 hover:text-rose-600 p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg"
+                            title="Remove line item"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

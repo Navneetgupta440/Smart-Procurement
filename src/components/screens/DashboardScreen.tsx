@@ -14,6 +14,7 @@ import {
   FileSpreadsheet,
   CheckCircle2,
   ShoppingBag,
+  Terminal,
 } from 'lucide-react';
 import { OrderStatusBadge, PriorityBadge } from '../common/StatusBadges';
 import {
@@ -118,22 +119,30 @@ export const DashboardScreen: React.FC = () => {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
+            onClick={() => setActiveTab(AppTab.API_CONSOLE)}
+            className="px-4 py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs rounded-xl shadow-xs transition-all duration-200 ease-out hover:scale-105 active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            title="Open Postman API Console & 55-Endpoint Test Suite"
+          >
+            <Terminal className="w-4 h-4" />
+            <span>Postman APIs (55)</span>
+          </button>
+          <button
             onClick={() => setActiveTab(AppTab.SHOPPING)}
-            className="px-4 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+            className="px-4 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold text-xs rounded-xl shadow-xs transition-all duration-200 ease-out hover:scale-105 active:scale-95 flex items-center gap-1.5 cursor-pointer"
           >
             <ShoppingBag className="w-4 h-4" />
             <span>Procure Store</span>
           </button>
           <button
             onClick={() => setActiveTab(AppTab.REQUESTS)}
-            className="px-4 py-2.5 bg-white text-[#00639A] font-bold text-xs rounded-xl shadow-xs hover:bg-blue-50 transition-all flex items-center gap-1.5"
+            className="px-4 py-2.5 bg-white text-[#00639A] font-bold text-xs rounded-xl shadow-xs hover:bg-blue-50 transition-all duration-200 ease-out hover:scale-105 active:scale-95 flex items-center gap-1.5 cursor-pointer"
           >
             <PlusCircle className="w-4 h-4" />
             New Requisition
           </button>
           <button
             onClick={() => advanceDemoLifecycle()}
-            className="px-4 py-2.5 bg-blue-900/40 hover:bg-blue-900/60 border border-white/20 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-1.5"
+            className="px-4 py-2.5 bg-blue-900/40 hover:bg-blue-900/60 border border-white/20 text-white font-bold text-xs rounded-xl transition-all duration-200 ease-out hover:scale-105 active:scale-95 flex items-center gap-1.5 cursor-pointer"
           >
             <span>Run Demo Workflow</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -161,7 +170,7 @@ export const DashboardScreen: React.FC = () => {
         {/* Pending Signatures */}
         <div
           onClick={() => setActiveTab(AppTab.ORDERS)}
-          className="bg-white dark:bg-[#191C20] rounded-2xl p-5 border border-[#E2E2E6] dark:border-[#33363A] shadow-xs cursor-pointer hover:border-[#00639A] transition-all group"
+          className="bg-white dark:bg-[#191C20] rounded-2xl p-5 border border-[#E2E2E6] dark:border-[#33363A] shadow-xs cursor-pointer hover:border-[#00639A] transition-all duration-200 ease-out hover:scale-[1.03] hover:shadow-md active:scale-[0.98] group"
         >
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-semibold uppercase tracking-wider">Pending Sign-offs</span>
@@ -179,7 +188,7 @@ export const DashboardScreen: React.FC = () => {
         {/* Active Logistics */}
         <div
           onClick={() => setActiveTab(AppTab.DELIVERY)}
-          className="bg-white dark:bg-[#191C20] rounded-2xl p-5 border border-[#E2E2E6] dark:border-[#33363A] shadow-xs cursor-pointer hover:border-[#00639A] transition-all group"
+          className="bg-white dark:bg-[#191C20] rounded-2xl p-5 border border-[#E2E2E6] dark:border-[#33363A] shadow-xs cursor-pointer hover:border-[#00639A] transition-all duration-200 ease-out hover:scale-[1.03] hover:shadow-md active:scale-[0.98] group"
         >
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-semibold uppercase tracking-wider">Active Shipments</span>
@@ -197,7 +206,7 @@ export const DashboardScreen: React.FC = () => {
         {/* Low Stock Items */}
         <div
           onClick={() => setActiveTab(AppTab.INVENTORY)}
-          className="bg-white dark:bg-[#191C20] rounded-2xl p-5 border border-[#E2E2E6] dark:border-[#33363A] shadow-xs cursor-pointer hover:border-[#00639A] transition-all group"
+          className="bg-white dark:bg-[#191C20] rounded-2xl p-5 border border-[#E2E2E6] dark:border-[#33363A] shadow-xs cursor-pointer hover:border-[#00639A] transition-all duration-200 ease-out hover:scale-[1.03] hover:shadow-md active:scale-[0.98] group"
         >
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-semibold uppercase tracking-wider">Inventory Alerts</span>
@@ -262,7 +271,7 @@ export const DashboardScreen: React.FC = () => {
               </span>
               <button
                 onClick={() => setActiveTab(AppTab.SUPPLIERS)}
-                className="text-xs font-semibold text-white/90 hover:text-white flex items-center gap-1"
+                className="text-xs font-semibold text-white/90 hover:text-white flex items-center gap-1 transition-all duration-200 ease-out hover:scale-105 active:scale-95 cursor-pointer"
               >
                 <span>View Supplier Directory</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -282,7 +291,7 @@ export const DashboardScreen: React.FC = () => {
             </div>
             <button
               onClick={() => setActiveTab(AppTab.ANALYTICS)}
-              className="text-xs font-semibold text-[#00639A] dark:text-sky-400 hover:underline flex items-center gap-1"
+              className="text-xs font-semibold text-[#00639A] dark:text-sky-400 hover:underline flex items-center gap-1 transition-all duration-200 ease-out hover:scale-105 active:scale-95 cursor-pointer"
             >
               <span>Full Analytics</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -327,7 +336,7 @@ export const DashboardScreen: React.FC = () => {
             </div>
             <button
               onClick={() => setActiveTab(AppTab.INVENTORY)}
-              className="text-xs font-bold text-rose-700 dark:text-rose-300 hover:underline"
+              className="text-xs font-bold text-rose-700 dark:text-rose-300 hover:underline transition-all duration-200 ease-out hover:scale-105 active:scale-95 cursor-pointer"
             >
               Manage Inventory
             </button>
@@ -349,7 +358,7 @@ export const DashboardScreen: React.FC = () => {
                 </div>
                 <button
                   onClick={() => handleQuickReplenish(prod)}
-                  className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs rounded-lg shadow-xs transition-colors flex items-center gap-1"
+                  className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs rounded-lg shadow-xs transition-all duration-200 ease-out hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1"
                 >
                   <PlusCircle className="w-3.5 h-3.5" />
                   Reorder
@@ -371,7 +380,7 @@ export const DashboardScreen: React.FC = () => {
           </div>
           <button
             onClick={() => setActiveTab(AppTab.ORDERS)}
-            className="text-xs font-semibold text-[#00639A] dark:text-sky-400 hover:underline flex items-center gap-1"
+            className="text-xs font-semibold text-[#00639A] dark:text-sky-400 hover:underline flex items-center gap-1 transition-all duration-200 ease-out hover:scale-105 active:scale-95 cursor-pointer"
           >
             <span>View All Orders</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -411,7 +420,7 @@ export const DashboardScreen: React.FC = () => {
                   <td className="py-3 text-right">
                     <button
                       onClick={() => setActiveTab(AppTab.ORDERS)}
-                      className="text-xs font-semibold text-[#00639A] hover:underline"
+                      className="text-xs font-semibold text-[#00639A] hover:underline transition-all duration-200 ease-out hover:scale-110 active:scale-95 cursor-pointer inline-block"
                     >
                       Inspect
                     </button>
