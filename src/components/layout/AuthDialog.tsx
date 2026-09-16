@@ -1,7 +1,21 @@
 import React, { useState } from 'react';
 import { useProcurement } from '../../context/ProcurementContext';
 import { MembershipPlan, UserRole, USER_ROLE_DETAILS } from '../../types/procurement';
-import { X, UserCircle, KeyRound, UserPlus, Shield, RotateCcw, Check } from 'lucide-react';
+import {
+  X,
+  UserCircle,
+  KeyRound,
+  UserPlus,
+  Shield,
+  RotateCcw,
+  Check,
+  ShieldCheck,
+  Lock,
+  Eye,
+  EyeOff,
+  Info,
+  AlertCircle,
+} from 'lucide-react';
 import { PlanBadge, RoleBadge } from '../common/StatusBadges';
 
 interface AuthDialogProps {
@@ -16,18 +30,76 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhone] = useState('');
   const [department, setDepartment] = useState('');
   const [role, setRole] = useState<UserRole>(UserRole.EMPLOYEE);
   const [plan, setPlan] = useState<MembershipPlan>(MembershipPlan.STARTER);
   const [billingCycle, setBillingCycle] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [signUpError, setSignUpError] = useState<string | null>(null);
+
+  // Real-time Password Strength and Validation Rules (Enterprise standard)
+  const passwordRules = [
+    {
+      id: 'length',
+      label: 'At least 8 characters',
+      valid: password.length >= 8,
+    },
+    {
+      id: 'lowercase',
+      label: 'One lowercase letter (a-z)',
+      valid: /[a-z]/.test(password),
+    },
+    {
+      id: 'uppercase',
+      label: 'One uppercase letter (A-Z)',
+      valid: /[A-Z]/.test(password),
+    },
+    {
+      id: 'number',
+      label: 'One numeric digit (0-9)',
+      valid: /[0-9]/.test(password),
+    },
+    {
+      id: 'special',
+      label: 'One special character (!@#$%^&*...)',
+      valid: /[^A-Za-z0-9]/.test(password),
+    },
+  ];
+
+  const passedRulesCount = passwordRules.filter((r) => r.valid).length;
+  const isPasswordSecure = passedRulesCount >= 4 && password.length >= 8;
+
+  const getPasswordStrength = () => {
+    if (!password) return { score: 0, label: 'Empty', color: 'bg-slate-200 dark:bg-slate-700', text: 'text-slate-400' };
+    if (passedRulesCount <= 2) {
+      return { score: 1, label: 'Weak', color: 'bg-rose-500', text: 'text-rose-600 dark:text-rose-400' };
+    }
+    if (passedRulesCount === 3) {
+      return { score: 2, label: 'Fair', color: 'bg-amber-500', text: 'text-amber-600 dark:text-amber-400' };
+    }
+    if (passedRulesCount === 4) {
+      return { score: 3, label: 'Good', color: 'bg-sky-500', text: 'text-sky-600 dark:text-sky-400' };
+    }
+    return { score: 4, label: 'Strong & Secure', color: 'bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400' };
+  };
+
+  const strength = getPasswordStrength();
 
   if (!isOpen) return null;
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim()) return;
+    setSignUpError(null);
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      setSignUpError('Please complete all required fields.');
+      return;
+    }
+    if (!isPasswordSecure) {
+      setSignUpError('Password does not meet enterprise security requirements (min 8 chars & 4 rules satisfied).');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const ok = await signUp({
@@ -42,7 +114,11 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
       });
       if (ok) {
         onClose();
+      } else {
+        setSignUpError('An account with this email already exists.');
       }
+    } catch {
+      setSignUpError('Registration failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -210,7 +286,14 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              {signUpError && (
+                <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 flex items-start gap-2 text-xs text-rose-700 dark:text-rose-400">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{signUpError}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Email Address
@@ -228,15 +311,84 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Password
                   </label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Defaults to password123"
-                    className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter secure password"
+                      className="w-full text-xs px-3 pr-8 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
                 </div>
               </div>
+
+              {/* Password Strength Meter & Validation Rules in Modal */}
+              {password.length > 0 && (
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 space-y-2.5 animate-in fade-in">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1.5 font-semibold">
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#00639A] dark:text-sky-400" />
+                      <span className="text-slate-700 dark:text-slate-300">Strength:</span>
+                      <span className={`font-bold ${strength.text}`}>{strength.label}</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-500">{passedRulesCount}/5 Satisfied</span>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="grid grid-cols-4 gap-1 h-1.5">
+                    {[1, 2, 3, 4].map((step) => (
+                      <div
+                        key={step}
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          strength.score >= step ? strength.color : 'bg-slate-200 dark:bg-slate-700'
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Rule checklist */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-0.5">
+                    {passwordRules.map((rule) => (
+                      <div
+                        key={rule.id}
+                        className={`flex items-center gap-1.5 text-[10.5px] transition-colors ${
+                          rule.valid
+                            ? 'text-emerald-700 dark:text-emerald-400'
+                            : 'text-slate-400 dark:text-slate-500'
+                        }`}
+                      >
+                        <span
+                          className={`w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 text-[8px] ${
+                            rule.valid
+                              ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-bold'
+                              : 'bg-slate-200 dark:bg-slate-800 text-slate-400'
+                          }`}
+                        >
+                          {rule.valid ? <Check className="w-2 h-2" /> : <X className="w-2 h-2" />}
+                        </span>
+                        <span className={rule.valid ? 'font-medium' : ''}>{rule.label}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {!isPasswordSecure && (
+                    <p className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                      <Info className="w-3 h-3 shrink-0" />
+                      Requires 8+ chars and at least 4 satisfied rules.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -314,13 +466,17 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
                 </div>
               </div>
 
-              <div className="pt-3">
+              <div className="pt-3 space-y-2">
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-2.5 bg-[#00639A] hover:bg-[#004B76] text-white font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50"
+                  disabled={isSubmitting || (password.length > 0 && !isPasswordSecure)}
+                  className="w-full py-2.5 bg-[#00639A] hover:bg-[#004B76] text-white font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  Create Account & Login
+                  {isSubmitting
+                    ? 'Creating Account...'
+                    : password && !isPasswordSecure
+                    ? 'Complete Password Requirements to Register'
+                    : 'Create Account & Login'}
                 </button>
               </div>
             </form>

@@ -74,6 +74,7 @@ Smart Procurement solves the friction, opaque spend, and manual bottlenecks typi
 
 ### Stage 1: Authentication & Role Provisioning
 - Dedicated **Login & Registration portal** with password verification and persistent session state (`localStorage`).
+- **Real-Time Password Strength Meter & Security Rule Validation**: Evaluates user input against 5 enterprise security criteria (length >= 8, lowercase, uppercase, numeric digit, and special characters) with dynamic progress bars, color-coded status badges, and policy enforcement during registration.
 - Instant persona switching across 7 pre-configured enterprise roles to simulate end-to-end multi-party handoffs in real time.
 
 ### Stage 2: Multi-Item Requisition Submission & Auto-Save Draft Engine
