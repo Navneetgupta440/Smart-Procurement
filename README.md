@@ -76,17 +76,20 @@ Smart Procurement solves the friction, opaque spend, and manual bottlenecks typi
 - Dedicated **Login & Registration portal** with password verification and persistent session state (`localStorage`).
 - Instant persona switching across 7 pre-configured enterprise roles to simulate end-to-end multi-party handoffs in real time.
 
-### Stage 2: Multi-Item Requisition Submission
+### Stage 2: Multi-Item Requisition Submission & Auto-Save Draft Engine
 - Requisitioners select catalog items with live unit prices and specifications.
 - Input quantities, required delivery dates, department cost centers, and business justifications.
 - Dynamic subtotal, GST (18%), and estimated grand total calculations.
+- **Auto-Save as Draft**: Real-time debounce auto-persistence of input state to `localStorage` prevents data loss if users navigate away or close the modal. Features active draft restoration indicators, timestamped save badges, and one-click draft discarding.
 
-### Stage 3: Dynamic Threshold Approval Engine
+### Stage 3: Dynamic Threshold Approval Engine & Bulk Moderation
 Requisitions are routed through a 3-tier financial threshold matrix:
 1. **Tier 1 (Routine / Low Value - < ₹15,000)**: Single sign-off by Department Approver.
 2. **Tier 2 (Medium Value - ₹15,000 to ₹1,00,000)**: Two sequential approvals: Department Lead followed by Senior Procurement Officer.
 3. **Tier 3 (High Value / Capital Expense - > ₹1,00,000)**: Three sequential signoffs: Department Lead, Procurement Officer, and Executive Admin / VP Finance, sealed with a SHA-256 digital approval hash.
-- Approvers can approve with audit comments or reject with formal rejection reasoning.
+- Approvers can approve individually with audit comments or reject with formal rejection reasoning.
+- **Bulk Action & Moderation Toolbar**: Approvers and Procurement Managers can multi-select requisitions with a master checkbox and floating bottom toolbar, facilitating bulk one-click sign-offs or bulk rejections with standard justification presets (budget constraints, duplicate request, etc.).
+- **Interactive Data Grid**: Column sorting on Requisition #, Estimated Total, Department, Priority, Status, and line items, plus real-time view toggling between Data Table and Card layouts.
 
 ### Stage 4: Algorithmic Sourcing & PO Conversion
 - Approved requisitions are transformed into binding Purchase Orders (`PO-XXXXX`).
@@ -131,10 +134,13 @@ Requisitions are routed through a 3-tier financial threshold matrix:
 ## ✨ Core Features & Functional Modules
 
 - **Dynamic Approval Engine**: Real-time evaluation of spending limits with multi-stage sign-offs and digital certificates.
+- **Auto-Save Draft Engine**: Automatically preserves in-progress purchase requisitions to browser storage (`localStorage`) so work is never lost if a user navigates away, switches views, or refreshes. Includes visual draft indicators and resume prompts.
+- **Interactive Multi-Column Sorting & Table Controls**: Click-to-sort headers with ascending/descending indicators across requisition numbers, estimated values, departments, priorities, creation dates, approval tiers, and nested line items.
+- **Bulk Action & Moderation Engine**: Checkbox column with master select-all (including indeterminate states), dynamic selection counter, and a floating moderation toolbar enabling one-click bulk approvals and structured bulk rejections with reason presets.
 - **Algorithmic Sourcing**: Automatic vendor ranking based on pricing, SLA compliance, quality index, and track record.
 - **Automated Inventory Inwarding**: Synchronizes logistics deliveries with warehouse stock upon delivery confirmation.
 - **Postman v2.1 Certified REST API**: 55 interactive endpoints tested and runnable in the built-in API console or Postman.
-- **Mobile-First Responsive Layout**: All tables, multi-item forms, and touch targets (≥44px) are optimized for smartphones and tablets.
+- **Mobile-First Responsive Layout**: All tables, multi-item forms, and touch targets (≥44px) are optimized for smartphones and tablets, with seamless switching between Data Table and Card views.
 - **Bento Card Design System**: Modern, high-contrast dashboard with dark/light mode toggle.
 - **Tamper-Evident Audit Trails**: Every state change records user ID, persona, timestamp, and action metadata.
 
