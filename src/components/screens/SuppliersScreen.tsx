@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useProcurement } from '../../context/ProcurementContext';
 import { Product, Supplier } from '../../types/procurement';
+import { SupplierPerformanceChart } from '../common/SupplierPerformanceChart';
+import { SupplierLogisticsMap, SUPPLIER_LOGISTICS_PROFILES } from '../common/SupplierLogisticsMap';
 import {
   Store,
   Star,
@@ -15,6 +17,11 @@ import {
   X,
   Sliders,
   TrendingUp,
+  LineChart as LineChartIcon,
+  LayoutGrid,
+  Compass,
+  MapPin,
+  Layers,
 } from 'lucide-react';
 
 export const SuppliersScreen: React.FC = () => {
@@ -26,12 +33,21 @@ export const SuppliersScreen: React.FC = () => {
     addSupplier,
     currentUser,
     orders,
+    allSupplierRatings,
   } = useProcurement();
 
   const [search, setSearch] = useState('');
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedSupplierForRating, setSelectedSupplierForRating] = useState<Supplier>(suppliers[0]);
+
+  // 6-Month Performance Chart State & Scroll Anchor
+  const [selectedChartSupplierId, setSelectedChartSupplierId] = useState<string>('ALL');
+  const chartSectionRef = useRef<HTMLDivElement>(null);
+
+  // View Mode: List View vs. Logistics Origin Map View
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const mapSectionRef = useRef<HTMLDivElement>(null);
 
   // Scoring calculator
   const [selectedProductForRank, setSelectedProductForRank] = useState<Product>(products[0]);
@@ -217,8 +233,19 @@ export const SuppliersScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="bg-white dark:bg-[#191C20] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shadow-xs">
+      {/* 6-Month Supplier Performance & Reliability Line Chart Section */}
+      <div ref={chartSectionRef} id="supplier-performance-trends-section">
+        <SupplierPerformanceChart
+          suppliers={suppliers}
+          allRatings={allSupplierRatings}
+          selectedSupplierId={selectedChartSupplierId}
+          onSelectSupplier={setSelectedChartSupplierId}
+          onRateSupplier={handleOpenRating}
+        />
+      </div>
+
+      {/* Directory Controls: Search & View Mode (List vs. Logistics Origin Map) */}
+      <div className="bg-white dark:bg-[#191C20] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -229,84 +256,187 @@ export const SuppliersScreen: React.FC = () => {
             className="w-full text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#00639A]"
           />
         </div>
-        <div className="text-xs text-slate-500 font-semibold">
-          Active Vendors: {filteredSuppliers.length}
+
+        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+          <span className="text-xs text-slate-500 font-semibold hidden md:inline">
+            Active Vendors: {filteredSuppliers.length}
+          </span>
+
+          {/* Segmented View Toggle: List View vs Map View */}
+          <div className="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200/80 dark:border-slate-800 text-xs font-semibold shrink-0">
+            <button
+              type="button"
+              id="suppliers-list-view-btn"
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
+                viewMode === 'list'
+                  ? 'bg-white dark:bg-[#191C20] text-[#00639A] dark:text-sky-300 shadow-xs font-bold'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>List View</span>
+            </button>
+            <button
+              type="button"
+              id="suppliers-map-view-btn"
+              onClick={() => {
+                setViewMode('map');
+                mapSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
+                viewMode === 'map'
+                  ? 'bg-white dark:bg-[#191C20] text-[#00639A] dark:text-sky-300 shadow-xs font-bold'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
+            >
+              <Compass className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Logistics Map</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold uppercase hidden xs:inline">
+                Origins
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Suppliers Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredSuppliers.map((sup) => (
-          <div
-            key={sup.id}
-            className="bg-white dark:bg-[#191C20] rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-all space-y-4"
-          >
-            <div>
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
-                    {sup.companyName}
-                  </h4>
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950 text-[#00639A] dark:text-sky-300 inline-block mt-1">
-                    {sup.category}
-                  </span>
-                </div>
+      {/* Conditional View: Geographical Logistics Map OR Directory Grid */}
+      {viewMode === 'map' ? (
+        <div ref={mapSectionRef} id="supplier-logistics-map-section">
+          <SupplierLogisticsMap
+            suppliers={filteredSuppliers}
+            onSelectSupplierTrends={(id) => {
+              setSelectedChartSupplierId(id);
+              chartSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+            onRateSupplier={handleOpenRating}
+          />
+        </div>
+      ) : (
+        /* Suppliers Grid */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredSuppliers.map((sup) => {
+            const logisticsProfile = SUPPLIER_LOGISTICS_PROFILES[sup.id];
 
-                <div className="flex items-center gap-1 bg-amber-50 dark:bg-amber-950/60 px-2 py-1 rounded-xl text-amber-700 dark:text-amber-300 font-bold text-xs">
-                  <Star className="w-3.5 h-3.5 fill-current text-amber-500" />
-                  <span>{sup.rating.toFixed(1)}</span>
-                </div>
-              </div>
-
-              {/* Vendor Score Matrix */}
-              <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
-                <div className="bg-slate-50 dark:bg-slate-900 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Quality SLA</span>
-                  <span className="font-black text-emerald-600 dark:text-emerald-400">
-                    {sup.qualityScore}%
-                  </span>
-                </div>
-                <div className="bg-slate-50 dark:bg-slate-900 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">On-Time Rate</span>
-                  <span className="font-black text-blue-600 dark:text-blue-400">
-                    {sup.onTimeDeliveryRate}%
-                  </span>
-                </div>
-              </div>
-
-              {/* Contact Information */}
-              <div className="space-y-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400">
-                <div className="flex items-center gap-2">
-                  <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span className="truncate">{sup.contactPerson} (GST: {sup.gstin})</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span>{sup.phone}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span className="truncate">{sup.email}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Bar */}
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <span className="text-[11px] text-slate-400">
-                Avg. Lead: <strong className="text-slate-700 dark:text-slate-300">{sup.averageLeadDays} days</strong>
-              </span>
-              <button
-                onClick={() => handleOpenRating(sup)}
-                className="px-3 py-1.5 bg-slate-100 hover:bg-[#00639A] hover:text-white dark:bg-slate-800 dark:hover:bg-[#00639A] text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl transition-all flex items-center gap-1"
+            return (
+              <div
+                key={sup.id}
+                className="bg-white dark:bg-[#191C20] rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-all space-y-4"
               >
-                <Star className="w-3 h-3" />
-                <span>Rate Vendor</span>
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                        {sup.companyName}
+                      </h4>
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950 text-[#00639A] dark:text-sky-300 inline-block mt-1">
+                        {sup.category}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1 bg-amber-50 dark:bg-amber-950/60 px-2 py-1 rounded-xl text-amber-700 dark:text-amber-300 font-bold text-xs">
+                      <Star className="w-3.5 h-3.5 fill-current text-amber-500" />
+                      <span>{sup.rating.toFixed(1)}</span>
+                    </div>
+                  </div>
+
+                  {/* Vendor Score Matrix */}
+                  <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
+                    <div className="bg-slate-50 dark:bg-slate-900 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Quality SLA</span>
+                      <span className="font-black text-emerald-600 dark:text-emerald-400">
+                        {sup.qualityScore}%
+                      </span>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-900 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">On-Time Rate</span>
+                      <span className="font-black text-blue-600 dark:text-blue-400">
+                        {sup.onTimeDeliveryRate}%
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Geographical Origin & Logistics Corridor Preview */}
+                  {logisticsProfile && (
+                    <div className="mt-3 p-2.5 bg-slate-50 dark:bg-slate-900/70 rounded-2xl border border-slate-100 dark:border-slate-800 text-[11px] space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-1 text-slate-700 dark:text-slate-200 font-semibold">
+                          <Compass className="w-3.5 h-3.5 text-[#00639A] dark:text-sky-400" />
+                          <span>{logisticsProfile.region} Corridor</span>
+                        </span>
+                        <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/50 dark:border-emerald-800/50">
+                          {logisticsProfile.logisticsOptimizationScore}% Optimization SLA
+                        </span>
+                      </div>
+                      <p className="text-slate-500 dark:text-slate-400 text-[10.5px] line-clamp-1">
+                        <strong>Origins:</strong>{' '}
+                        {logisticsProfile.rawMaterials.map((m) => m.originLocation.split(' ')[0]).join(', ')}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Contact Information */}
+                  <div className="space-y-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400">
+                    <div className="flex items-center gap-2">
+                      <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span className="truncate">{sup.contactPerson} (GST: {sup.gstin})</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>{sup.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span className="truncate">{sup.email}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Bar */}
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                  <span className="text-[11px] text-slate-400">
+                    Avg. Lead: <strong className="text-slate-700 dark:text-slate-300">{sup.averageLeadDays}d</strong>
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setViewMode('map');
+                        mapSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }}
+                      className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/80 text-emerald-800 dark:text-emerald-300 text-xs font-semibold rounded-xl transition-all flex items-center gap-1"
+                      title="View Geographical Origin on Logistics Map"
+                    >
+                      <Compass className="w-3 h-3" />
+                      <span>Map</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedChartSupplierId(sup.id);
+                        chartSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }}
+                      className="px-2.5 py-1.5 bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/80 text-[#00639A] dark:text-sky-300 text-xs font-semibold rounded-xl transition-all flex items-center gap-1"
+                      title="View 6-Month Reliability & Quality Trends"
+                    >
+                      <TrendingUp className="w-3 h-3" />
+                      <span>Trends</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenRating(sup)}
+                      className="px-2.5 py-1.5 bg-slate-100 hover:bg-[#00639A] hover:text-white dark:bg-slate-800 dark:hover:bg-[#00639A] text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl transition-all flex items-center gap-1"
+                    >
+                      <Star className="w-3 h-3" />
+                      <span>Rate</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Supplier Performance Rating Modal */}
       {showRatingModal && (
