@@ -78,9 +78,17 @@ export const PurchaseRequestsScreen: React.FC = () => {
     rejectPurchaseRequest,
     convertRequestToPo,
     addToast,
+    screenSearchQuery,
+    setScreenSearchQuery,
   } = useProcurement();
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(screenSearchQuery || '');
+
+  React.useEffect(() => {
+    if (screenSearchQuery !== undefined && screenSearchQuery !== '') {
+      setSearch(screenSearchQuery);
+    }
+  }, [screenSearchQuery]);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [showCreateModal, setShowCreateModal] = useState(false);
 

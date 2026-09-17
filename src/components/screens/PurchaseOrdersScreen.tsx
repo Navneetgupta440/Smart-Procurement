@@ -47,9 +47,17 @@ export const PurchaseOrdersScreen: React.FC = () => {
     supplierDispatchOrder,
     advanceDeliveryStatus,
     deliveries,
+    screenSearchQuery,
+    setScreenSearchQuery,
   } = useProcurement();
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(screenSearchQuery || '');
+
+  React.useEffect(() => {
+    if (screenSearchQuery !== undefined && screenSearchQuery !== '') {
+      setSearch(screenSearchQuery);
+    }
+  }, [screenSearchQuery]);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(orders[0]?.id || null);
 

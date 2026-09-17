@@ -1,6 +1,6 @@
 {
   "name": "Smart Procurement",
   "description": "An enterprise-grade, multi-tenant procurement and purchase order orchestration platform featuring role-based workflows, dynamic multi-tier approval hierarchies, algorithmic supplier evaluation, shipment tracking, and automated inventory reconciliation.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

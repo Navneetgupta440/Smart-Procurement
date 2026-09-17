@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useProcurement } from '../../context/ProcurementContext';
 import { Priority, Product, TransactionType, AppTab } from '../../types/procurement';
+import { InventoryQrScannerModal } from '../modals/InventoryQrScannerModal';
+import { InventoryQrLabelViewerModal } from '../modals/InventoryQrLabelViewerModal';
 import {
   Boxes,
   AlertTriangle,
@@ -16,6 +18,8 @@ import {
   CheckCircle2,
   Package,
   ShoppingBag,
+  Camera,
+  QrCode,
 } from 'lucide-react';
 
 export const InventoryScreen: React.FC = () => {
@@ -27,15 +31,27 @@ export const InventoryScreen: React.FC = () => {
     adjustInventoryManual,
     createPurchaseRequest,
     setActiveTab,
+    screenSearchQuery,
+    setScreenSearchQuery,
   } = useProcurement();
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(screenSearchQuery || '');
+
+  React.useEffect(() => {
+    if (screenSearchQuery !== undefined && screenSearchQuery !== '') {
+      setSearch(screenSearchQuery);
+    }
+  }, [screenSearchQuery]);
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [selectedProductForAdjust, setSelectedProductForAdjust] = useState<Product | null>(null);
   const [stockDelta, setStockDelta] = useState<number>(10);
   const [adjustNotes, setAdjustNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // QR Code Scanner and QR Label Viewer Modals
+  const [showQrScanner, setShowQrScanner] = useState(false);
+  const [selectedProductForQr, setSelectedProductForQr] = useState<Product | null>(null);
 
   const categories = Array.from(
     new Set(products.map((p) => p.categoryName || p.category || 'General'))
@@ -98,13 +114,24 @@ export const InventoryScreen: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setActiveTab(AppTab.SHOPPING)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-colors self-start sm:self-auto"
-        >
-          <ShoppingBag className="w-4 h-4" />
-          <span>Procure Shopping Catalog</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
+          <button
+            id="btn-open-qr-scanner"
+            onClick={() => setShowQrScanner(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#00639A] hover:bg-[#004B76] text-white font-bold text-xs shadow-sm hover:shadow-md transition-all cursor-pointer"
+          >
+            <Camera className="w-4 h-4" />
+            <span>Scan QR Stock Label</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab(AppTab.SHOPPING)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs shadow-xs transition-colors"
+          >
+            <ShoppingBag className="w-4 h-4 text-blue-600" />
+            <span>Procure Catalog</span>
+          </button>
+        </div>
       </div>
 
       {/* Replenishment Recommendations Shelf */}
@@ -182,6 +209,16 @@ export const InventoryScreen: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
+          <button
+            type="button"
+            id="btn-filter-scan-label"
+            onClick={() => setShowQrScanner(true)}
+            className="text-xs px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-[#00639A] dark:text-sky-400 font-bold border border-blue-200 dark:border-blue-900 transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer"
+          >
+            <QrCode className="w-3.5 h-3.5" />
+            <span>Scan Label</span>
+          </button>
+
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -209,7 +246,7 @@ export const InventoryScreen: React.FC = () => {
                 <th className="pb-3">Available Stock</th>
                 <th className="pb-3">Safety Min / Max</th>
                 <th className="pb-3">Stock Level</th>
-                <th className="pb-3 text-right">Adjustment</th>
+                <th className="pb-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
@@ -281,12 +318,23 @@ export const InventoryScreen: React.FC = () => {
                       </div>
                     </td>
                     <td className="py-3 text-right">
-                      <button
-                        onClick={() => handleOpenAdjust(prod)}
-                        className="px-2.5 py-1 text-xs font-semibold text-[#00639A] dark:text-sky-400 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                      >
-                        Adjust Stock
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedProductForQr(prod)}
+                          title="Print / View QR Label"
+                          className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-[#00639A] dark:hover:text-sky-400 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <QrCode className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenAdjust(prod)}
+                          className="px-2.5 py-1 text-xs font-semibold text-[#00639A] dark:text-sky-400 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                        >
+                          Adjust Stock
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -434,6 +482,19 @@ export const InventoryScreen: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* QR Code & Barcode Camera Scanner Modal */}
+      <InventoryQrScannerModal
+        isOpen={showQrScanner}
+        onClose={() => setShowQrScanner(false)}
+      />
+
+      {/* QR Warehouse Stock Label Viewer & Print Modal */}
+      <InventoryQrLabelViewerModal
+        isOpen={!!selectedProductForQr}
+        product={selectedProductForQr}
+        onClose={() => setSelectedProductForQr(null)}
+      />
     </div>
   );
 };

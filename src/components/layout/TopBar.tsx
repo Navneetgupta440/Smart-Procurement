@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useProcurement } from '../../context/ProcurementContext';
 import { UserRole, AppTab } from '../../types/procurement';
 import {
@@ -18,10 +18,12 @@ import {
   Info,
   LogIn,
   LogOut,
+  Search,
 } from 'lucide-react';
 import { RoleBadge } from '../common/StatusBadges';
 import { ProcureLogo } from '../common/ProcureLogo';
 import { exportProjectZip, triggerBlobDownload } from '../../utils/projectZipExport';
+import { GlobalSearchModal } from './GlobalSearchModal';
 
 interface TopBarProps {
   onOpenNotifications: () => void;
@@ -49,10 +51,31 @@ export const TopBar: React.FC<TopBarProps> = ({
     activeTab,
     isAuthenticated,
     logout,
+    globalSearchOpen,
+    setGlobalSearchOpen,
   } = useProcurement();
 
   const [showPersonaMenu, setShowPersonaMenu] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+
+  // Platform detection for keyboard shortcut display (⌘K vs Ctrl+K)
+  const isMac = useMemo(() => {
+    if (typeof navigator === 'undefined') return true;
+    return /Mac|iPod|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+  }, []);
+
+  // Keyboard shortcut listener for Cmd+K (Mac) or Ctrl+K (Windows/Linux)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        setGlobalSearchOpen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [setGlobalSearchOpen]);
 
   const handleExportZip = async () => {
     setIsExporting(true);
@@ -71,7 +94,7 @@ export const TopBar: React.FC<TopBarProps> = ({
     <header className="sticky top-0 z-40 bg-[#FFFFFF]/95 dark:bg-[#191C20]/95 backdrop-blur-md border-b border-[#121212]/10 dark:border-[#33363A] px-4 lg:px-6 py-2.5 transition-colors">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Brand */}
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab(AppTab.DASHBOARD)}>
+        <div className="flex items-center gap-3 cursor-pointer shrink-0" onClick={() => setActiveTab(AppTab.DASHBOARD)}>
           <ProcureLogo size="md" />
           <div>
             <div className="flex items-center gap-2">
@@ -88,8 +111,42 @@ export const TopBar: React.FC<TopBarProps> = ({
           </div>
         </div>
 
+        {/* Global Search Component Trigger (Desktop & Tablet) */}
+        <div className="hidden md:flex items-center flex-1 max-w-xs lg:max-w-md mx-2">
+          <button
+            type="button"
+            id="topbar-global-search-btn"
+            onClick={() => setGlobalSearchOpen(true)}
+            className="w-full flex items-center justify-between px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 text-slate-500 dark:text-slate-400 text-xs transition-all shadow-2xs group cursor-pointer"
+            title={`Search requests, orders, inventory items (${isMac ? '⌘K' : 'Ctrl+K'})`}
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <Search className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-colors shrink-0" />
+              <span className="truncate text-slate-500 dark:text-slate-400 font-medium">
+                Search requests, orders, stock...
+              </span>
+            </div>
+            <div className="flex items-center gap-1 shrink-0 ml-2">
+              <kbd className="inline-flex items-center font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 shadow-2xs">
+                {isMac ? '⌘K' : 'Ctrl+K'}
+              </kbd>
+            </div>
+          </button>
+        </div>
+
         {/* Action Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Mobile Search Button (< md) */}
+          <button
+            type="button"
+            id="topbar-mobile-search-btn"
+            onClick={() => setGlobalSearchOpen(true)}
+            className="md:hidden p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            title={`Quick Search (${isMac ? '⌘K' : 'Ctrl+K'})`}
+            aria-label="Global Search"
+          >
+            <Search className="w-4 h-4" />
+          </button>
           {/* Shopping Procure Store Quick Button */}
           <button
             onClick={() => setActiveTab(AppTab.SHOPPING)}
@@ -303,6 +360,12 @@ export const TopBar: React.FC<TopBarProps> = ({
           )}
         </div>
       </div>
+
+      {/* Global Search Command Palette (Cmd+K / Ctrl+K) */}
+      <GlobalSearchModal
+        isOpen={globalSearchOpen}
+        onClose={() => setGlobalSearchOpen(false)}
+      />
     </header>
   );
 };

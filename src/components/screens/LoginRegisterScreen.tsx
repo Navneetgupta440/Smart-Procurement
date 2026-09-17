@@ -27,10 +27,12 @@ import {
 } from 'lucide-react';
 import { ProcureLogo } from '../common/ProcureLogo';
 import { RoleBadge } from '../common/StatusBadges';
+import { ForgotPasswordModal } from '../modals/ForgotPasswordModal';
 
 export const LoginRegisterScreen: React.FC = () => {
   const {
     login,
+    loginWithOAuth,
     signUp,
     allUsers,
     switchUserById,
@@ -49,6 +51,21 @@ export const LoginRegisterScreen: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+
+  // Load remembered email on mount
+  React.useEffect(() => {
+    try {
+      const savedEmail = localStorage.getItem('sp_remembered_email');
+      const savedRemember = localStorage.getItem('sp_remember_me');
+      if (savedEmail) {
+        setLoginEmail(savedEmail);
+        setRememberMe(true);
+      } else if (savedRemember === 'false') {
+        setRememberMe(false);
+      }
+    } catch {}
+  }, []);
 
   // Register Form State
   const [regName, setRegName] = useState('');
@@ -121,12 +138,36 @@ export const LoginRegisterScreen: React.FC = () => {
     }
     setIsLoggingIn(true);
     try {
+      if (rememberMe) {
+        try {
+          localStorage.setItem('sp_remembered_email', loginEmail.trim());
+          localStorage.setItem('sp_remember_me', 'true');
+        } catch {}
+      } else {
+        try {
+          localStorage.removeItem('sp_remembered_email');
+          localStorage.setItem('sp_remember_me', 'false');
+        } catch {}
+      }
+
       const ok = await login(loginEmail, loginPassword);
       if (!ok) {
         setLoginError('Invalid credentials. Check email or click any 1-Click Demo Persona below.');
       }
     } catch {
       setLoginError('Failed to sign in. Please try again.');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleOAuthLogin = async (provider: 'google' | 'github') => {
+    setIsLoggingIn(true);
+    setLoginError(null);
+    try {
+      await loginWithOAuth(provider);
+    } catch {
+      setLoginError(`Failed to authenticate with ${provider}. Please try again.`);
     } finally {
       setIsLoggingIn(false);
     }
@@ -322,12 +363,22 @@ export const LoginRegisterScreen: React.FC = () => {
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    <label htmlFor="input-login-password" className="block text-xs font-bold text-slate-700 dark:text-slate-300">
                       Password
                     </label>
-                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-                      Demo key: <strong className="text-slate-800 dark:text-slate-200">password123</strong>
-                    </span>
+                    <div className="flex items-center gap-2.5">
+                      <button
+                        type="button"
+                        id="btn-forgot-password"
+                        onClick={() => setShowForgotModal(true)}
+                        className="text-xs font-semibold text-[#00639A] dark:text-sky-400 hover:text-[#004B76] dark:hover:text-sky-300 hover:underline cursor-pointer transition-colors"
+                      >
+                        Forgot Password?
+                      </button>
+                      <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono hidden sm:inline">
+                        (Demo: <strong className="text-slate-700 dark:text-slate-300">password123</strong>)
+                      </span>
+                    </div>
                   </div>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -342,6 +393,9 @@ export const LoginRegisterScreen: React.FC = () => {
                     />
                     <button
                       type="button"
+                      id="btn-toggle-login-password"
+                      aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
+                      title={showLoginPassword ? 'Hide password' : 'Show password'}
                       onClick={() => setShowLoginPassword(!showLoginPassword)}
                       className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1"
                     >
@@ -351,14 +405,24 @@ export const LoginRegisterScreen: React.FC = () => {
                 </div>
 
                 <div className="flex items-center justify-between text-xs pt-1">
-                  <label className="flex items-center gap-2 text-slate-600 dark:text-slate-400 cursor-pointer">
+                  <label htmlFor="checkbox-remember-me" className="flex items-center gap-2 text-slate-600 dark:text-slate-400 cursor-pointer select-none">
                     <input
                       type="checkbox"
+                      id="checkbox-remember-me"
                       checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-[#00639A] focus:ring-[#00639A]"
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setRememberMe(checked);
+                        if (!checked) {
+                          try {
+                            localStorage.removeItem('sp_remembered_email');
+                            localStorage.setItem('sp_remember_me', 'false');
+                          } catch {}
+                        }
+                      }}
+                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-[#00639A] focus:ring-[#00639A] cursor-pointer"
                     />
-                    <span>Remember this device</span>
+                    <span className="font-medium">Remember my email</span>
                   </label>
                   <span className="text-slate-400 dark:text-slate-500 text-[11px]">
                     256-Bit SSL Encrypted
@@ -383,6 +447,63 @@ export const LoginRegisterScreen: React.FC = () => {
                     </>
                   )}
                 </button>
+
+                {/* Alternative Social SSO Authentication */}
+                <div className="space-y-3 pt-2">
+                  <div className="relative flex items-center justify-center">
+                    <div className="w-full border-t border-slate-200 dark:border-slate-800" />
+                    <span className="absolute bg-white dark:bg-[#191C20] px-3 text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                      Or continue with
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      id="btn-signin-google"
+                      onClick={() => handleOAuthLogin('google')}
+                      disabled={isLoggingIn}
+                      className="w-full min-h-[44px] py-2.5 px-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2.5 cursor-pointer active:scale-[0.98] disabled:opacity-60"
+                    >
+                      <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                        <path
+                          fill="#4285F4"
+                          d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
+                        />
+                        <path
+                          fill="#34A853"
+                          d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.27 21.36 7.37 24 12 24z"
+                        />
+                        <path
+                          fill="#FBBC05"
+                          d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.94 0 12s.46 3.84 1.26 5.42l4.02-3.15z"
+                        />
+                        <path
+                          fill="#EA4335"
+                          d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.37 0 3.27 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                        />
+                      </svg>
+                      <span>Sign in with Google</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      id="btn-signin-github"
+                      onClick={() => handleOAuthLogin('github')}
+                      disabled={isLoggingIn}
+                      className="w-full min-h-[44px] py-2.5 px-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2.5 cursor-pointer active:scale-[0.98] disabled:opacity-60"
+                    >
+                      <svg className="w-4 h-4 shrink-0 fill-current text-slate-900 dark:text-white" viewBox="0 0 24 24">
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                        />
+                      </svg>
+                      <span>Sign in with GitHub</span>
+                    </button>
+                  </div>
+                </div>
 
                 <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
                   <span>Need an immediate overview?</span>
@@ -772,6 +893,17 @@ export const LoginRegisterScreen: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Forgot Password Flow Modal */}
+      <ForgotPasswordModal
+        isOpen={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
+        initialEmail={loginEmail}
+        onSuccessReset={(email, newPass) => {
+          setLoginEmail(email);
+          setLoginPassword(newPass);
+        }}
+      />
     </div>
   );
 };

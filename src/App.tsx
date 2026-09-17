@@ -22,12 +22,17 @@ import { ShoppingCatalogScreen } from './components/screens/ShoppingCatalogScree
 import { AboutScreen } from './components/screens/AboutScreen';
 import { LoginRegisterScreen } from './components/screens/LoginRegisterScreen';
 import { PostmanSecurityModal } from './components/common/PostmanSecurityModal';
+import { SessionTimeoutModal } from './components/modals/SessionTimeoutModal';
+import { useInactivityTimer } from './hooks/useInactivityTimer';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
   const {
     activeTab,
     isAuthenticated,
+    autoLogout,
+    logout,
+    addToast,
     showNotificationsModal,
     setShowNotificationsModal,
     showAuthDialog,
@@ -39,6 +44,24 @@ const MainLayout: React.FC = () => {
   } = useProcurement();
 
   const [showWalkthroughModal, setShowWalkthroughModal] = React.useState(false);
+
+  // Enterprise Inactivity Auto-Logout Timer Hook
+  const {
+    showWarningModal,
+    remainingSeconds,
+    handleStayLoggedIn,
+    handleLogoutNow,
+  } = useInactivityTimer({
+    totalIdleTimeoutMs: 5 * 60 * 1000, // 5 minutes inactivity
+    warningDurationMs: 60 * 1000,      // 60 seconds warning countdown
+    isEnabled: isAuthenticated,
+    onLogout: () => {
+      autoLogout('Session automatically expired after 5 minutes of inactivity to protect procurement assets.');
+    },
+    onExtendSession: () => {
+      addToast('info', 'Session Refreshed', 'Enterprise security timeout reset. Privileges active.');
+    },
+  });
 
   const renderActiveScreen = () => {
     // If not authenticated and not explicitly viewing the public About screen, show Login/Register
@@ -138,6 +161,14 @@ const MainLayout: React.FC = () => {
           onClose={() => setShowPostmanSecurityModal(false)}
         />
       )}
+
+      {/* Enterprise Inactivity Session Expiration Warning Modal */}
+      <SessionTimeoutModal
+        isOpen={showWarningModal}
+        remainingSeconds={remainingSeconds}
+        onStayLoggedIn={handleStayLoggedIn}
+        onLogoutNow={handleLogoutNow}
+      />
 
       {/* Floating System Toasts */}
       <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none">

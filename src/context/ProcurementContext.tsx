@@ -111,6 +111,13 @@ interface ProcurementContextType {
   showNewRequisitionModal: boolean;
   setShowNewRequisitionModal: (show: boolean) => void;
 
+  // Global Search State & Navigation
+  globalSearchOpen: boolean;
+  setGlobalSearchOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  screenSearchQuery: string;
+  setScreenSearchQuery: (query: string) => void;
+  navigateToEntity: (tab: AppTab, searchQuery?: string) => void;
+
   // Navigation
   setActiveTab: (tab: AppTab) => void;
   setThemeMode: (mode: 'light' | 'dark') => void;
@@ -126,6 +133,8 @@ interface ProcurementContextType {
   switchRole: (role: UserRole) => void;
   switchUserById: (userId: string) => void;
   login: (email: string, password: string) => Promise<boolean>;
+  loginWithOAuth: (provider: 'google' | 'github') => Promise<boolean>;
+  resetPassword: (email: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
   signUp: (data: {
     name: string;
     email: string;
@@ -137,6 +146,7 @@ interface ProcurementContextType {
     billingCycle: 'MONTHLY' | 'YEARLY';
   }) => Promise<boolean>;
   logout: () => void;
+  autoLogout: (reason?: string) => void;
   upgradeMembership: (plan: MembershipPlan, billingCycle: 'MONTHLY' | 'YEARLY') => void;
 
   // Purchase Requests
@@ -377,6 +387,16 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [showNewRequisitionModal, setShowNewRequisitionModal] = useState(false);
   const [showPostmanSecurityModal, setShowPostmanSecurityModal] = useState(false);
+  const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
+  const [screenSearchQuery, setScreenSearchQuery] = useState('');
+
+  const navigateToEntity = (tab: AppTab, searchQuery?: string) => {
+    if (searchQuery !== undefined) {
+      setScreenSearchQuery(searchQuery);
+    }
+    setActiveTab(tab);
+    setGlobalSearchOpen(false);
+  };
 
   // Wishlist state (persisted across sessions)
   const [wishlistProductIds, setWishlistProductIds] = useState<string[]>(() => {
@@ -673,6 +693,58 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return true;
   };
 
+  const loginWithOAuth = async (provider: 'google' | 'github'): Promise<boolean> => {
+    const providerLabel = provider === 'google' ? 'Google Workspace SSO' : 'GitHub Enterprise SSO';
+    // Find or link with default admin account or matching OAuth persona
+    const foundUser = users.find((u) => u.email === 'indianavneetgupta33@gmail.com') || users[0] || INITIAL_USERS[0];
+    
+    setCurrentUserId(foundUser.id);
+    setIsAuthenticated(true);
+    try {
+      localStorage.setItem(STORAGE_KEYS.IS_AUTH, 'true');
+    } catch {}
+    setActiveTab(AppTab.DASHBOARD);
+    logAudit(foundUser, AuditAction.LOGIN, 'USER', foundUser.id, `Authenticated via ${providerLabel}`);
+    sendNotification(
+      foundUser.id,
+      `${providerLabel} Login Detected`,
+      `Your account was accessed via ${providerLabel} single sign-on.`,
+      NotificationEventType.SYSTEM
+    );
+    addToast('success', `${providerLabel} Verified`, `Welcome back, ${foundUser.name}! Direct workspace access granted.`);
+    return true;
+  };
+
+  const resetPassword = async (email: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
+    const trimmed = email.trim().toLowerCase();
+    const userIndex = users.findIndex((u) => u.email.toLowerCase() === trimmed);
+    if (userIndex === -1) {
+      addToast('error', 'Reset Failed', `No account registered with email ${email}`);
+      return { success: false, message: `No registered account found with email ${email}.` };
+    }
+
+    const updatedUser = {
+      ...users[userIndex],
+      passwordHash: newPassword,
+    };
+
+    setUsers((prev) => {
+      const copy = [...prev];
+      copy[userIndex] = updatedUser;
+      return copy;
+    });
+
+    logAudit(updatedUser, AuditAction.RESET_PASSWORD, 'USER', updatedUser.id, `Password credentials successfully updated`);
+    sendNotification(
+      updatedUser.id,
+      'Security Alert: Password Updated',
+      'Your account password was successfully reset via self-service verification.',
+      NotificationEventType.SYSTEM
+    );
+    addToast('success', 'Password Updated', `Password for ${updatedUser.email} has been updated. You can now log in.`);
+    return { success: true, message: 'Password has been reset successfully.' };
+  };
+
   const logout = () => {
     logAudit(currentUser, AuditAction.LOGOUT, 'USER', currentUser.id, `User ${currentUser.name} logged out`);
     setIsAuthenticated(false);
@@ -681,6 +753,26 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } catch {}
     setActiveTab(AppTab.AUTH);
     addToast('info', 'Logged Out', `Signed out successfully. Please sign in or register to continue.`);
+  };
+
+  const autoLogout = (reason?: string) => {
+    logAudit(
+      currentUser,
+      AuditAction.LOGOUT,
+      'USER',
+      currentUser.id,
+      `Session automatically terminated due to user inactivity`
+    );
+    setIsAuthenticated(false);
+    try {
+      localStorage.setItem(STORAGE_KEYS.IS_AUTH, 'false');
+    } catch {}
+    setActiveTab(AppTab.AUTH);
+    addToast(
+      'error',
+      'Session Expired',
+      reason || 'You were automatically logged out due to inactivity to protect enterprise procurement data.'
+    );
   };
 
   const upgradeMembership = (plan: MembershipPlan, billingCycle: 'MONTHLY' | 'YEARLY') => {
@@ -2025,6 +2117,11 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
         setShowAuthDialog,
         showNewRequisitionModal,
         setShowNewRequisitionModal,
+        globalSearchOpen,
+        setGlobalSearchOpen,
+        screenSearchQuery,
+        setScreenSearchQuery,
+        navigateToEntity,
         isAuthenticated,
         setIsAuthenticated,
         setActiveTab,
@@ -2039,8 +2136,11 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
         switchRole,
         switchUserById,
         login,
+        loginWithOAuth,
+        resetPassword,
         signUp,
         logout,
+        autoLogout,
         upgradeMembership,
         createPurchaseRequest,
         approvePurchaseRequest,
